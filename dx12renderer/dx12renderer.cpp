@@ -8,6 +8,7 @@
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
+HWND hWindow;                                   // current window handle
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
@@ -104,7 +105,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    {
       return FALSE;
    }
-
+   hWindow = hWnd;
+   //
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 

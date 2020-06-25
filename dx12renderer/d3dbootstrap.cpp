@@ -1,7 +1,6 @@
 #include "stdafx.h"
-#include <d3d12.h>
-#include <dxgi1_4.h>
 #include "dx12renderer.h"
+#include "d3dbootstrap.h"
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -16,20 +15,14 @@
 #pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
 #endif
 
-struct FrameContext
-{
-      ID3D12CommandAllocator* CommandAllocator;
-      UINT64                  FenceValue;
-};
 
-static int const                    NUM_FRAMES_IN_FLIGHT = 3;
 static FrameContext                 g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
 static UINT                         g_frameIndex = 0;
 
 #define NUM_BACK_BUFFERS 3
-static ID3D12Device*                g_pd3dDevice = NULL;
+ID3D12Device*                g_pd3dDevice = NULL;
 static ID3D12DescriptorHeap*        g_pd3dRtvDescHeap = NULL;
-static ID3D12DescriptorHeap*        g_pd3dSrvDescHeap = NULL;
+ID3D12DescriptorHeap*        g_pd3dSrvDescHeap = NULL;
 static ID3D12CommandQueue*          g_pd3dCommandQueue = NULL;
 static ID3D12GraphicsCommandList*   g_pd3dCommandList = NULL;
 static ID3D12Fence*                 g_fence = NULL;
@@ -172,4 +165,29 @@ bool CreateDeviceD3D(HWND hWnd)
 
       CreateRenderTarget();
       return true;
+}
+
+void CleanupDeviceD3D()
+{
+      CleanupRenderTarget();
+      if (g_pSwapChain) { g_pSwapChain->Release(); g_pSwapChain = NULL; }
+      if (g_hSwapChainWaitableObject != NULL) { CloseHandle(g_hSwapChainWaitableObject); }
+      for (UINT i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
+            if (g_frameContext[i].CommandAllocator) { g_frameContext[i].CommandAllocator->Release(); g_frameContext[i].CommandAllocator = NULL; }
+      if (g_pd3dCommandQueue) { g_pd3dCommandQueue->Release(); g_pd3dCommandQueue = NULL; }
+      if (g_pd3dCommandList) { g_pd3dCommandList->Release(); g_pd3dCommandList = NULL; }
+      if (g_pd3dRtvDescHeap) { g_pd3dRtvDescHeap->Release(); g_pd3dRtvDescHeap = NULL; }
+      if (g_pd3dSrvDescHeap) { g_pd3dSrvDescHeap->Release(); g_pd3dSrvDescHeap = NULL; }
+      if (g_fence) { g_fence->Release(); g_fence = NULL; }
+      if (g_fenceEvent) { CloseHandle(g_fenceEvent); g_fenceEvent = NULL; }
+      if (g_pd3dDevice) { g_pd3dDevice->Release(); g_pd3dDevice = NULL; }
+
+#ifdef DX12_ENABLE_DEBUG_LAYER
+      IDXGIDebug1* pDebug = NULL;
+      if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug))))
+      {
+            pDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_SUMMARY);
+            pDebug->Release();
+      }
+#endif
 }

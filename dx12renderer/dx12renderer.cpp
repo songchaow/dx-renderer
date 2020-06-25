@@ -3,6 +3,10 @@
 
 #include "stdafx.h"
 #include "dx12renderer.h"
+#include "d3dbootstrap.h"
+#include "ext/imgui/imgui.h"
+#include "ext/imgui/imgui_impl_win32.h"
+#include "ext/imgui/imgui_impl_dx12.h"
 
 #define MAX_LOADSTRING 100
 
@@ -11,6 +15,7 @@ HINSTANCE hInst;                                // current instance
 HWND hWindow;                                   // current window handle
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+WNDCLASSEXW windowClass;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -56,34 +61,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     return (int) msg.wParam;
 }
 
-
-
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-ATOM MyRegisterClass(HINSTANCE hInstance)
-{
-    WNDCLASSEXW wcex;
-
-    wcex.cbSize = sizeof(WNDCLASSEX);
-
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_DX12RENDERER));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_DX12RENDERER);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-
-    return RegisterClassExW(&wcex);
-}
-
 //
 //   FUNCTION: InitInstance(HINSTANCE, int)
 //
@@ -96,22 +73,72 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   hInst = hInstance; // Store instance handle in our global variable
+      hInst = hInstance; // Store instance handle in our global variable
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+      HWND hwnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+            CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
-   if (!hWnd)
-   {
-      return FALSE;
-   }
-   hWindow = hWnd;
-   //
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+      if (!hwnd)
+      {
+            return FALSE;
+      }
+      hWindow = hwnd;
 
-   return TRUE;
+      // Initialize D3D
+      if (!CreateDeviceD3D(hwnd))
+      {
+            CleanupDeviceD3D();
+            ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+            return 1;
+      }
+
+      ShowWindow(hwnd, nCmdShow);
+      UpdateWindow(hwnd);
+
+      // Setup Dear ImGui context
+      IMGUI_CHECKVERSION();
+      ImGui::CreateContext();
+      ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+      ImGui::StyleColorsDark();
+
+      // Setup Platform/Renderer bindings
+      ImGui_ImplWin32_Init(hwnd);
+      ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT,
+            DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
+            g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
+            g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+
+      return TRUE;
 }
+
+//
+//  FUNCTION: MyRegisterClass()
+//
+//  PURPOSE: Registers the window class.
+//
+ATOM MyRegisterClass(HINSTANCE hInstance)
+{
+    
+
+    windowClass.cbSize = sizeof(WNDCLASSEX);
+
+    windowClass.style          = CS_HREDRAW | CS_VREDRAW;
+    windowClass.lpfnWndProc    = WndProc;
+    windowClass.cbClsExtra     = 0;
+    windowClass.cbWndExtra     = 0;
+    windowClass.hInstance      = hInstance;
+    windowClass.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_DX12RENDERER));
+    windowClass.hCursor        = LoadCursor(nullptr, IDC_ARROW);
+    windowClass.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
+    windowClass.lpszMenuName   = MAKEINTRESOURCEW(IDC_DX12RENDERER);
+    windowClass.lpszClassName  = szWindowClass;
+    windowClass.hIconSm        = LoadIcon(windowClass.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+    return RegisterClassExW(&windowClass);
+}
+
+
 
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)

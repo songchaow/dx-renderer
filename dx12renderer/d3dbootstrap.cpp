@@ -19,19 +19,18 @@
 static FrameContext                 g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
 static UINT                         g_frameIndex = 0;
 
-#define NUM_BACK_BUFFERS 3
 ID3D12Device*                g_pd3dDevice = NULL;
 static ID3D12DescriptorHeap*        g_pd3dRtvDescHeap = NULL;
 ID3D12DescriptorHeap*        g_pd3dSrvDescHeap = NULL;
-static ID3D12CommandQueue*          g_pd3dCommandQueue = NULL;
-static ID3D12GraphicsCommandList*   g_pd3dCommandList = NULL;
-static ID3D12Fence*                 g_fence = NULL;
+ID3D12CommandQueue*          g_pd3dCommandQueue = NULL;
+ID3D12GraphicsCommandList*   g_pd3dCommandList = NULL;
+ID3D12Fence*                 g_fence = NULL;
 static HANDLE                       g_fenceEvent = NULL;
-static UINT64                       g_fenceLastSignaledValue = 0;
-static IDXGISwapChain3*             g_pSwapChain = NULL;
+UINT64                       g_fenceLastSignaledValue = 0;
+IDXGISwapChain3*             g_pSwapChain = NULL;
 static HANDLE                       g_hSwapChainWaitableObject = NULL;
-static ID3D12Resource*              g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
-static D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
+ID3D12Resource*              g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
+D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
 
 void CreateRenderTarget()
 {
@@ -58,6 +57,30 @@ void WaitForLastSubmittedFrame()
       g_fence->SetEventOnCompletion(fenceValue, g_fenceEvent);
       WaitForSingleObject(g_fenceEvent, INFINITE);
 }
+
+FrameContext* WaitForNextFrameResources()
+{
+    UINT nextFrameIndex = g_frameIndex + 1;
+    g_frameIndex = nextFrameIndex;
+
+    HANDLE waitableObjects[] = { g_hSwapChainWaitableObject, NULL };
+    DWORD numWaitableObjects = 1;
+
+    FrameContext* frameCtxt = &g_frameContext[nextFrameIndex % NUM_FRAMES_IN_FLIGHT];
+    UINT64 fenceValue = frameCtxt->FenceValue;
+    if (fenceValue != 0) // means no fence was signaled
+    {
+        frameCtxt->FenceValue = 0;
+        g_fence->SetEventOnCompletion(fenceValue, g_fenceEvent);
+        waitableObjects[1] = g_fenceEvent;
+        numWaitableObjects = 2;
+    }
+
+    WaitForMultipleObjects(numWaitableObjects, waitableObjects, TRUE, INFINITE);
+
+    return frameCtxt;
+}
+
 void CleanupRenderTarget()
 {
       WaitForLastSubmittedFrame();

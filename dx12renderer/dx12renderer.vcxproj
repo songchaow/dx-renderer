@@ -148,6 +148,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="common\camera.h" />
+    <ClInclude Include="common\geometry.h" />
     <ClInclude Include="d3dbootstrap.h" />
     <ClInclude Include="dx12renderer.h" />
     <ClInclude Include="ext\imgui\imconfig.h" />
@@ -163,6 +165,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="common\geometry.cpp" />
     <ClCompile Include="d3dbootstrap.cpp" />
     <ClCompile Include="dx12renderer.cpp" />
     <ClCompile Include="ext\imgui\imgui.cpp" />

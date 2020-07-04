@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\src\demangle.cc" />
+    <ClCompile Include="..\src\logging.cc" />
+    <ClCompile Include="..\src\raw_logging.cc" />
+    <ClCompile Include="..\src\symbolize.cc" />
+    <ClCompile Include="..\src\utilities.cc" />
+    <ClCompile Include="..\src\vlog_is_on.cc" />
+    <ClCompile Include="..\src\signalhandler.cc" />
+    <ClCompile Include="..\src\windows\port.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\win32\glog\logging.h" />
+    <ClInclude Include="..\win32\glog\raw_logging.h" />
+    <ClInclude Include="..\win32\glog\stl_logging.h" />
+    <ClInclude Include="..\win32\glog\vlog_is_on.h" />
+    <ClInclude Include="..\src\glog\log_severity.h" />
+    <ClInclude Include="..\src\base\commandlineflags.h" />
+    <ClInclude Include="..\src\base\googleinit.h" />
+    <ClInclude Include="..\src\base\mutex.h" />
+    <ClInclude Include="..\src\demangle.h" />
+    <ClInclude Include="..\src\symbolize.h" />
+    <ClInclude Include="..\src\utilities.h" />
+    <ClInclude Include="..\src\windows\port.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{70492288-DD98-3453-BCC0-F82E6396E5F5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{BF99D7D1-7279-3EB3-9B38-1B81C8E96B99}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

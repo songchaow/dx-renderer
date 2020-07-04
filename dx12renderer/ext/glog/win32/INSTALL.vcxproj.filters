@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\songc\Codes\dx12renderer\dx12renderer\ext\glog\win32\CMakeFiles\b57ba078b6a065f89faaf88e7dd4a41f\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{31CE1BCE-6A92-38C4-AB14-E42466A9B503}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

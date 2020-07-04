@@ -188,6 +188,11 @@
     <Image Include="dx12renderer.ico" />
     <Image Include="small.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="ext\glog\win32\glog.vcxproj">
+      <Project>{4ccb41b9-711c-30fc-bdd7-97572578872e}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -35,11 +35,17 @@
 #pragma once
 #endif
 
-#include <QPoint>
+typedef float Float;
+constexpr float Pi = 3.1415927;
 
-#include "core/common.h"
-#include "utils/utils.h"
 #include <iterator>
+#include <glog/logging.h>
+
+template <typename T, typename T1, typename T2> T Clamp(T val, T1 min, T2 max) {
+      if (val < min) return min;
+      if (val > max) return max;
+      return val;
+}
 
 template <typename T>
 inline bool isNaN(const T x) {
@@ -306,11 +312,6 @@ class Point2 {
         x *= f;
         y *= f;
         return *this;
-    }
-    Point2<T>& operator=(const QPoint& qp) {
-          x = qp.x();
-          y = qp.y();
-          return *this;
     }
     template <typename U>
     Point2<T> operator/(U f) const {

@@ -6,6 +6,9 @@
 #include "d3dx12.h"
 #include "utility/utility.h"
 
+extern ID3D12Device* g_pd3dDevice;
+extern ID3D12GraphicsCommandList*   g_pd3dCommandList;
+
 // an element: point3f, normal3f, etc...
 enum ElementFormatName {
       POSITION3F32,
@@ -74,7 +77,13 @@ struct VertexData {
             uint64_t len = 0;
             for (auto& l : _layout)
                   len += byte_Length[l];
-            return len;
+            return len * vertexNum;
+      }
+      void LoadtoBuffer() {
+            if (!_data)
+                  return;
+            ComPtr<ID3D12Resource> uploadBuffer;
+            ComPtr<ID3D12Resource> defaultBuffer = CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _data.get(), byteLength(), uploadBuffer);
       }
 };
 
@@ -95,7 +104,7 @@ VertexData make_example_vertexdata() {
       //char* vertex_data = new char[8 * ret.byteLength()];
       ret._data.reset(reinterpret_cast<char*>(vertex_data));
       ret.vertexNum = 8;
-
+      return ret;
 }
 
 void CreateD3DInputLayoutDesc(VertexLayout l, std::vector<D3D12_INPUT_ELEMENT_DESC>& element_descs) {

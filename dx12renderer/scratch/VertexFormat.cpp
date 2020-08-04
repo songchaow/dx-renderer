@@ -18,7 +18,7 @@ enum ElementFormatName {
       NUM_ELEMENT_FORMAT
 };
 
-static uint32_t byte_Length[NUM_ELEMENT_FORMAT] = {
+static uint32_t element_byte_Length[NUM_ELEMENT_FORMAT] = {
       12,
       8,
       12,
@@ -70,20 +70,57 @@ ComPtr<ID3D12Resource> CreateDefaultBuffer(ID3D12Device* device, ID3D12GraphicsC
 }
 
 struct VertexData {
-      VertexLayout _layout;
-      std::unique_ptr<char[]> _data;
-      uint64_t vertexNum;
+      VertexLayout _layout; // initialize
+      std::unique_ptr<char[]> _dataVertex; // initialize
+      std::unique_ptr<char[]> _dataIndex; // initialize
+      ComPtr<ID3D12Resource> vertexBuffer = nullptr;
+      ComPtr<ID3D12Resource> indexBuffer = nullptr;
+      uint64_t vertexNum; // initialize
+      uint64_t indexNum; // initialize
+      DXGI_FORMAT indexFormat; // initialize (maybe from byte stride)
       uint64_t byteLength() {
             uint64_t len = 0;
             for (auto& l : _layout)
-                  len += byte_Length[l];
+                  len += element_byte_Length[l];
             return len * vertexNum;
       }
+      uint64_t indexByteLength() {
+            constexpr uint64_t preIndexByteLength = 4;
+            return indexNum * preIndexByteLength;
+      }
+      uint64_t byteStride() {
+            uint64_t len = 0;
+            for (auto& l : _layout)
+                  len += element_byte_Length[l];
+            return len;
+      }
       void LoadtoBuffer() {
-            if (!_data)
+            if (!_dataVertex)
                   return;
-            ComPtr<ID3D12Resource> uploadBuffer;
-            ComPtr<ID3D12Resource> defaultBuffer = CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _data.get(), byteLength(), uploadBuffer);
+            // create vertex buffer
+            ComPtr<ID3D12Resource> uploadBuffer = nullptr;
+            vertexBuffer = CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataVertex.get(), byteLength(), uploadBuffer);
+            // create VBV
+            D3D12_VERTEX_BUFFER_VIEW vbv;
+            vbv.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
+            vbv.SizeInBytes = byteLength();
+            vbv.StrideInBytes = byteStride();
+
+            // bound to pipeline (set input slot and view)
+            g_pd3dCommandList->IASetVertexBuffers(0, 1, &vbv);
+
+            // create index buffer
+            // reuse uploadBuffer? no
+            ComPtr<ID3D12Resource> uploadBufferIndex;
+            indexBuffer = CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataIndex.get(), indexByteLength(), uploadBufferIndex);
+            // create IBV
+            D3D12_INDEX_BUFFER_VIEW ibv;
+            ibv.BufferLocation = indexBuffer->GetGPUVirtualAddress();
+            ibv.SizeInBytes = indexByteLength();
+            ibv.Format = indexFormat;
+
+            // bound to pipeline
+            g_pd3dCommandList->IASetIndexBuffer(&ibv);
       }
 };
 
@@ -102,7 +139,7 @@ VertexData make_example_vertexdata() {
       VertexData ret;
       ret._layout = VertexLayout({ POSITION3F32 });
       //char* vertex_data = new char[8 * ret.byteLength()];
-      ret._data.reset(reinterpret_cast<char*>(vertex_data));
+      ret._dataVertex.reset(reinterpret_cast<char*>(vertex_data));
       ret.vertexNum = 8;
       return ret;
 }

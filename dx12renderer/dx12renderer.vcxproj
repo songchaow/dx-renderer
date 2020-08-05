@@ -154,6 +154,7 @@
     <ClInclude Include="d3dbootstrap.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="dx12renderer.h" />
+    <ClInclude Include="engine\primitive.h" />
     <ClInclude Include="ext\imgui\imconfig.h" />
     <ClInclude Include="ext\imgui\imgui.h" />
     <ClInclude Include="ext\imgui\imgui_impl_dx12.h" />

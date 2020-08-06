@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "dx12renderer.h"
 #include "d3dbootstrap.h"
+#include "d3dx12.h"
+
+#include "engine/primitive.h"
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -89,6 +92,18 @@ void CleanupRenderTarget()
             if (g_mainRenderTargetResource[i]) { g_mainRenderTargetResource[i]->Release(); g_mainRenderTargetResource[i] = NULL; }
 }
 
+bool CreatePipelineD3D() {
+      // create root signature
+      CD3DX12_ROOT_PARAMETER root_param;
+
+      // only CBV for now
+      CD3DX12_DESCRIPTOR_RANGE cbvTable;
+      cbvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
+
+      root_param.InitAsDescriptorTable(1, &cbvTable);
+
+}
+
 bool CreateDeviceD3D(HWND hWnd)
 {
       // Setup swap chain
@@ -143,7 +158,7 @@ bool CreateDeviceD3D(HWND hWnd)
       {
             D3D12_DESCRIPTOR_HEAP_DESC desc = {};
             desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-            desc.NumDescriptors = 1;
+            desc.NumDescriptors = 1 + Primitive3D::NUM_MAX_PRIMITIVE_3D; // the first for imgui, and others for constant buffer
             desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
             if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)
                   return false;

@@ -25,6 +25,7 @@ void CreateRenderTarget();
 void WaitForLastSubmittedFrame();
 void CleanupRenderTarget();
 bool CreateDeviceD3D(HWND hWnd);
+bool CreatePipelineD3D();
 void CleanupDeviceD3D();
 
 FrameContext* WaitForNextFrameResources();

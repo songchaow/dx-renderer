@@ -200,6 +200,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       ShowWindow(hwnd, nCmdShow);
       UpdateWindow(hwnd);
 
+      // 
+      CreatePipelineD3D();
+
       // Setup Dear ImGui context
       IMGUI_CHECKVERSION();
       ImGui::CreateContext();

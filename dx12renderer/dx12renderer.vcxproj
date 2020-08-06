@@ -166,12 +166,14 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="utility\UploadBuffer.h" />
     <ClInclude Include="utility\utility.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common\geometry.cpp" />
     <ClCompile Include="d3dbootstrap.cpp" />
     <ClCompile Include="dx12renderer.cpp" />
+    <ClCompile Include="engine\primitive.cpp" />
     <ClCompile Include="ext\imgui\imgui.cpp" />
     <ClCompile Include="ext\imgui\imgui_demo.cpp" />
     <ClCompile Include="ext\imgui\imgui_draw.cpp" />

@@ -1,13 +1,12 @@
 #pragma once
 #include "d3dx12.h"
 #include "stdafx.h"
-#include "wrl/client.h"
 #include "utility/UploadBuffer.h"
 #include "d3dbootstrap.h"
 #include <cassert>
+#include "utility/utility.h"
 
-template <typename T>
-      using ComPtr = Microsoft::WRL::ComPtr<T>;
+
 
 class Primitive3D {
 public:

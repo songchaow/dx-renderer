@@ -34,6 +34,7 @@ IDXGISwapChain3*             g_pSwapChain = NULL;
 static HANDLE                       g_hSwapChainWaitableObject = NULL;
 ID3D12Resource*              g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
 D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
+ID3D12RootSignature* g_defaultRootSignature = NULL;
 
 void CreateRenderTarget()
 {
@@ -93,7 +94,7 @@ void CleanupRenderTarget()
 }
 
 bool CreatePipelineD3D() {
-      // create root signature
+      // create default root signature
       CD3DX12_ROOT_PARAMETER root_param;
 
       // only CBV for now
@@ -102,6 +103,34 @@ bool CreatePipelineD3D() {
 
       root_param.InitAsDescriptorTable(1, &cbvTable);
 
+      // create root signature
+      CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, &root_param, 0, nullptr,
+            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+      ComPtr<ID3DBlob> serializedRootSig = nullptr;
+      ComPtr<ID3DBlob> errorBlob = nullptr;
+      HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+            serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
+
+      if (errorBlob != nullptr)
+      {
+            ::OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+      }
+      ThrowIfFailed(hr);
+
+      ThrowIfFailed(g_pd3dDevice->CreateRootSignature(
+            0,
+            serializedRootSig->GetBufferPointer(),
+            serializedRootSig->GetBufferSize(),
+            IID_PPV_ARGS(&g_defaultRootSignature)));
+
+      // bind to pipeline
+      g_pd3dCommandList->SetGraphicsRootSignature(g_defaultRootSignature);
+      g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
+
+      CD3DX12_GPU_DESCRIPTOR_HANDLE cbv(g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+      SIZE_T size = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      cbv.Offset(1, size);
+      g_pd3dCommandList->SetGraphicsRootDescriptorTable(0, cbv);
 }
 
 bool CreateDeviceD3D(HWND hWnd)
@@ -219,6 +248,7 @@ void CleanupDeviceD3D()
       if (g_fence) { g_fence->Release(); g_fence = NULL; }
       if (g_fenceEvent) { CloseHandle(g_fenceEvent); g_fenceEvent = NULL; }
       if (g_pd3dDevice) { g_pd3dDevice->Release(); g_pd3dDevice = NULL; }
+      if (g_defaultRootSignature) { g_defaultRootSignature->Release(); g_defaultRootSignature = NULL; }
 
 #ifdef DX12_ENABLE_DEBUG_LAYER
       IDXGIDebug1* pDebug = NULL;

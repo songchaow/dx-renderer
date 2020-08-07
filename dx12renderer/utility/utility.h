@@ -1,7 +1,11 @@
 #pragma once
 #include <stdexcept>
+#include "wrl/client.h"
 
 #define ThrowIfFailed(f) if( (f) < 0) { throw std::runtime_error("API call failed");}
+
+template <typename T>
+using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 class d3dUtil
 {

@@ -69,12 +69,14 @@ ComPtr<ID3D12Resource> CreateDefaultBuffer(ID3D12Device* device, ID3D12GraphicsC
       return defaultBuffer;
 }
 
-struct VertexData {
+struct MeshData {
       VertexLayout _layout; // initialize
       std::unique_ptr<char[]> _dataVertex; // initialize
       std::unique_ptr<char[]> _dataIndex; // initialize
       ComPtr<ID3D12Resource> vertexBuffer = nullptr;
       ComPtr<ID3D12Resource> indexBuffer = nullptr;
+      D3D12_VERTEX_BUFFER_VIEW vbv;
+      D3D12_INDEX_BUFFER_VIEW ibv;
       uint64_t vertexNum; // initialize
       uint64_t indexNum; // initialize
       DXGI_FORMAT indexFormat; // initialize (maybe from byte stride)
@@ -101,30 +103,28 @@ struct VertexData {
             ComPtr<ID3D12Resource> uploadBuffer = nullptr;
             vertexBuffer = CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataVertex.get(), byteLength(), uploadBuffer);
             // create VBV
-            D3D12_VERTEX_BUFFER_VIEW vbv;
             vbv.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
             vbv.SizeInBytes = byteLength();
             vbv.StrideInBytes = byteStride();
 
             // bound to pipeline (set input slot and view)
-            g_pd3dCommandList->IASetVertexBuffers(0, 1, &vbv);
+            // g_pd3dCommandList->IASetVertexBuffers(0, 1, &vbv);
 
             // create index buffer
             // reuse uploadBuffer? no
             ComPtr<ID3D12Resource> uploadBufferIndex;
             indexBuffer = CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataIndex.get(), indexByteLength(), uploadBufferIndex);
             // create IBV
-            D3D12_INDEX_BUFFER_VIEW ibv;
             ibv.BufferLocation = indexBuffer->GetGPUVirtualAddress();
             ibv.SizeInBytes = indexByteLength();
             ibv.Format = indexFormat;
 
             // bound to pipeline
-            g_pd3dCommandList->IASetIndexBuffer(&ibv);
+            // g_pd3dCommandList->IASetIndexBuffer(&ibv);
       }
 };
 
-VertexData make_example_vertexdata() {
+MeshData make_example_vertexdata() {
       constexpr uint8_t vertexNum = 8;
       static float vertex_data[vertexNum * 3] = {
             -1.0, -1.0, -1.0,
@@ -136,7 +136,7 @@ VertexData make_example_vertexdata() {
             1.0, 1.0, -1.0,
             1.0, 1.0, 1.0
       };
-      VertexData ret;
+      MeshData ret;
       ret._layout = VertexLayout({ POSITION3F32 });
       //char* vertex_data = new char[8 * ret.byteLength()];
       ret._dataVertex.reset(reinterpret_cast<char*>(vertex_data));

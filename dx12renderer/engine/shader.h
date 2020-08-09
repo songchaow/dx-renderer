@@ -14,6 +14,8 @@ struct ShaderPath {
       bool complete() const { return vertex.size() > 0; }
 };
 
+extern ShaderPath _shaderPaths[(UINT)ShaderType::NUM_SHADER];
+
 class Shader {
       ShaderPath path;
       std::vector<D3D_SHADER_MACRO> defines;

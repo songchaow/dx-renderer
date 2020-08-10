@@ -7,6 +7,7 @@
 #include "ext/imgui/imgui.h"
 #include "ext/imgui/imgui_impl_win32.h"
 #include "ext/imgui/imgui_impl_dx12.h"
+#include "engine/scene.h"
 
 #define MAX_LOADSTRING 100
 
@@ -199,8 +200,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
       ShowWindow(hwnd, nCmdShow);
       UpdateWindow(hwnd);
+      // begin record initialization commands
+      g_pd3dCommandList->Reset(g_frameContext[0].CommandAllocator, nullptr);
 
-      // 
+      // constant buffer of primitives
+      Primitive3D::initConstBuffer();
+      // Primitives
+      Scene::scene.objs3D.push_back(make_example_primitive());
+
+      // Pipeline
       CreatePipelineD3D();
 
       // Setup Dear ImGui context

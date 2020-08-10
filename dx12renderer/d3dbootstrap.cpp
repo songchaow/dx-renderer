@@ -19,7 +19,7 @@
 #endif
 
 
-static FrameContext                 g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
+FrameContext                 g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
 static UINT                         g_frameIndex = 0;
 
 ID3D12Device*                g_pd3dDevice = NULL;

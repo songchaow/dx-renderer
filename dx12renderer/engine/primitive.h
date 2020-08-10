@@ -20,7 +20,7 @@ typedef std::vector<ElementFormatName> VertexLayout;
 template <typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-uint32_t element_byte_Length[NUM_ELEMENT_FORMAT];
+extern uint32_t element_byte_Length[NUM_ELEMENT_FORMAT];
 
 struct MeshData {
       VertexLayout _layout; // initialize
@@ -33,6 +33,7 @@ struct MeshData {
       uint64_t vertexNum; // initialize
       uint64_t indexNum; // initialize
       DXGI_FORMAT indexFormat; // initialize (maybe from byte stride)
+
       uint64_t byteLength() {
             uint64_t len = 0;
             for (auto& l : _layout)
@@ -54,31 +55,33 @@ struct MeshData {
                   return;
             // create vertex buffer
             ComPtr<ID3D12Resource> uploadBuffer = nullptr;
-            vertexBuffer = CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataVertex.get(), byteLength(), uploadBuffer);
+            vertexBuffer = d3dUtil::CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataVertex.get(), byteLength(), uploadBuffer);
             // create VBV
             vbv.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
             vbv.SizeInBytes = byteLength();
             vbv.StrideInBytes = byteStride();
 
-            // bound to pipeline (set input slot and view)
+            // (used when draw) bound to pipeline (set input slot and view)
             // g_pd3dCommandList->IASetVertexBuffers(0, 1, &vbv);
 
             // create index buffer
             // reuse uploadBuffer? no
             ComPtr<ID3D12Resource> uploadBufferIndex;
-            indexBuffer = CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataIndex.get(), indexByteLength(), uploadBufferIndex);
+            indexBuffer = d3dUtil::CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataIndex.get(), indexByteLength(), uploadBufferIndex);
             // create IBV
             ibv.BufferLocation = indexBuffer->GetGPUVirtualAddress();
             ibv.SizeInBytes = indexByteLength();
             ibv.Format = indexFormat;
 
-            // bound to pipeline
+            // (used when draw) bound to pipeline
             // g_pd3dCommandList->IASetIndexBuffer(&ibv);
       }
 
       MeshData(VertexLayout l, char* dataVertex, uint64_t numVertex, char* dataIndex, uint64_t numIndex) : _layout(l), _dataVertex(dataVertex),
-            _dataIndex(dataIndex), vertexNum(numVertex), indexNum(numIndex), indexFormat() {}
+            _dataIndex(dataIndex), vertexNum(numVertex), indexNum(numIndex), indexFormat(DXGI_FORMAT_R16_UINT) {}
       MeshData() : vertexNum(0), indexNum(0) {}
+      MeshData(MeshData&& m) : _layout(m._layout), _dataVertex(std::move(m._dataVertex)), _dataIndex(std::move(m._dataIndex)), vertexBuffer(m.vertexBuffer),
+            indexBuffer(m.indexBuffer), vbv(m.vbv), ibv(m.ibv), vertexNum(m.vertexNum), indexNum(m.indexNum), indexFormat(m.indexFormat) {}
 };
 
 class Primitive3D {
@@ -96,13 +99,14 @@ private:
       };
       DataPerObject constant_buffer_cpu;
       static UploadBuffer<DataPerObject> constant_buffer;
+public:
       static void initConstBuffer() {
             constant_buffer.Create(g_pd3dDevice, NUM_MAX_PRIMITIVE_3D);
       }
       void init() {
             // update constant buffer (only one globally)
             constant_buffer.CopyData(pIdx, constant_buffer_cpu);
-            // create CBV (there's one for each primitive3d)
+            // create CBV (there's one for each primitive3d), located in a certain place in g_pd3dSrvDescHeap
             uint32_t perObjectByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(DataPerObject));
             uint32_t offset = pIdx * perObjectByteSize;
             D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc;
@@ -110,16 +114,27 @@ private:
             cbv_desc.SizeInBytes = perObjectByteSize;
             SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             D3D12_CPU_DESCRIPTOR_HANDLE hdl = g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart();
-            hdl.ptr += constBufferViewSize * pIdx;
+            hdl.ptr += constBufferViewSize * (pIdx + 1);
             g_pd3dDevice->CreateConstantBufferView(&cbv_desc, hdl);
 
+            // mesh
+
+      }
+      D3D12_CPU_DESCRIPTOR_HANDLE ConstantBufferView() const {
+            SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            D3D12_CPU_DESCRIPTOR_HANDLE hdl = g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart();
+            hdl.ptr += constBufferViewSize * (pIdx + 1);
+            return hdl;
       }
       void updateGPUData() {
             constant_buffer.CopyData(pIdx, constant_buffer_cpu);
       }
 
 public:
-      Primitive3D(MeshData m) : pIdx(curr_max_pIdx++) {
+      Primitive3D(MeshData&& m) : pIdx(curr_max_pIdx++), mesh(std::move(m)) {
             assert(pIdx <= NUM_MAX_PRIMITIVE_3D - 1);
+            init();
       }
 };
+
+Primitive3D* make_example_primitive();

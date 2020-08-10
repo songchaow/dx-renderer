@@ -6,17 +6,10 @@
 #include "d3dx12.h"
 #include "utility/utility.h"
 
+#include "engine/primitive.h"
+
 extern ID3D12Device* g_pd3dDevice;
 extern ID3D12GraphicsCommandList*   g_pd3dCommandList;
-
-// an element: point3f, normal3f, etc...
-enum ElementFormatName {
-      POSITION3F32,
-      TEXCOORD,
-      NORMAL3F32,
-      TANGENT3F32,
-      NUM_ELEMENT_FORMAT
-};
 
 static uint32_t element_byte_Length[NUM_ELEMENT_FORMAT] = {
       12,
@@ -24,7 +17,6 @@ static uint32_t element_byte_Length[NUM_ELEMENT_FORMAT] = {
       12,
       12
 };
-
 // seems only name and format are determined
 D3D12_INPUT_ELEMENT_DESC vertex_format_descs[NUM_ELEMENT_FORMAT] = {
       //semantic name   Semantic Index    Format                              InputSlot   ByteOffset  InputSlotClass
@@ -34,12 +26,7 @@ D3D12_INPUT_ELEMENT_DESC vertex_format_descs[NUM_ELEMENT_FORMAT] = {
       {"TANGENT",       0,                DXGI_FORMAT_R32G32B32A32_FLOAT,     0,          0,          D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,  0}
 };
 
-typedef std::vector<ElementFormatName> VertexLayout;
-
 VertexLayout pbrVertexLayout = { POSITION3F32, TEXCOORD, NORMAL3F32, TANGENT3F32 };
-
-template <typename T>
-      using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 ComPtr<ID3D12Resource> CreateDefaultBuffer(ID3D12Device* device, ID3D12GraphicsCommandList* cmdList, const void* initCPUData, UINT64 byteSize, Microsoft::WRL::ComPtr<ID3D12Resource>&
       uploadBuffer) {
@@ -69,61 +56,6 @@ ComPtr<ID3D12Resource> CreateDefaultBuffer(ID3D12Device* device, ID3D12GraphicsC
       return defaultBuffer;
 }
 
-struct MeshData {
-      VertexLayout _layout; // initialize
-      std::unique_ptr<char[]> _dataVertex; // initialize
-      std::unique_ptr<char[]> _dataIndex; // initialize
-      ComPtr<ID3D12Resource> vertexBuffer = nullptr;
-      ComPtr<ID3D12Resource> indexBuffer = nullptr;
-      D3D12_VERTEX_BUFFER_VIEW vbv;
-      D3D12_INDEX_BUFFER_VIEW ibv;
-      uint64_t vertexNum; // initialize
-      uint64_t indexNum; // initialize
-      DXGI_FORMAT indexFormat; // initialize (maybe from byte stride)
-      uint64_t byteLength() {
-            uint64_t len = 0;
-            for (auto& l : _layout)
-                  len += element_byte_Length[l];
-            return len * vertexNum;
-      }
-      uint64_t indexByteLength() {
-            constexpr uint64_t preIndexByteLength = 4;
-            return indexNum * preIndexByteLength;
-      }
-      uint64_t byteStride() {
-            uint64_t len = 0;
-            for (auto& l : _layout)
-                  len += element_byte_Length[l];
-            return len;
-      }
-      void LoadtoBuffer() {
-            if (!_dataVertex)
-                  return;
-            // create vertex buffer
-            ComPtr<ID3D12Resource> uploadBuffer = nullptr;
-            vertexBuffer = CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataVertex.get(), byteLength(), uploadBuffer);
-            // create VBV
-            vbv.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
-            vbv.SizeInBytes = byteLength();
-            vbv.StrideInBytes = byteStride();
-
-            // bound to pipeline (set input slot and view)
-            // g_pd3dCommandList->IASetVertexBuffers(0, 1, &vbv);
-
-            // create index buffer
-            // reuse uploadBuffer? no
-            ComPtr<ID3D12Resource> uploadBufferIndex;
-            indexBuffer = CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataIndex.get(), indexByteLength(), uploadBufferIndex);
-            // create IBV
-            ibv.BufferLocation = indexBuffer->GetGPUVirtualAddress();
-            ibv.SizeInBytes = indexByteLength();
-            ibv.Format = indexFormat;
-
-            // bound to pipeline
-            // g_pd3dCommandList->IASetIndexBuffer(&ibv);
-      }
-};
-
 MeshData make_example_vertexdata() {
       constexpr uint8_t vertexNum = 8;
       static float vertex_data[vertexNum * 3] = {
@@ -131,17 +63,46 @@ MeshData make_example_vertexdata() {
             -1.0, -1.0, 1.0,
             -1.0, 1.0, -1.0,
             -1.0, 1.0, 1.0,
-            1.0, -1.0, -1.0,
-            1.0, -1.0, 1.0,
-            1.0, 1.0, -1.0,
-            1.0, 1.0, 1.0
+             1.0, -1.0, -1.0,
+             1.0, -1.0, 1.0,
+             1.0, 1.0, -1.0,
+             1.0, 1.0, 1.0
       };
+      float* vertex_data_copy = new float[vertexNum * 3];
+      std::memcpy(vertex_data_copy, vertex_data, sizeof(float) * vertexNum * 3);
+      static float index_data[36] = {
+            //front
+            0,1,2,
+            0,2,3,
+            //back
+            4,6,5,
+            4,7,6,
+            //left
+            4,5,1,
+            4,1,0,
+            //right
+            3,2,6,
+            3,6,7,
+            //top
+            1,5,6,
+            1,6,2,
+            //bottom
+            4,0,3,
+            4,3,7,
+      };
+      uint16_t* index_data_copy = new uint16_t[36];
+      std::memcpy(index_data_copy, index_data, sizeof(uint16_t) * 36);
+      VertexLayout positionLayout = { POSITION3F32 };
       MeshData ret;
       ret._layout = VertexLayout({ POSITION3F32 });
       //char* vertex_data = new char[8 * ret.byteLength()];
       ret._dataVertex.reset(reinterpret_cast<char*>(vertex_data));
       ret.vertexNum = 8;
       return ret;
+}
+
+Primitive3D* make_example_primitive() {
+      Primitive3D* p3D = new Primitive3D();
 }
 
 void CreateD3DInputLayoutDesc(VertexLayout l, std::vector<D3D12_INPUT_ELEMENT_DESC>& element_descs) {

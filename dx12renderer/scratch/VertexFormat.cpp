@@ -11,7 +11,7 @@
 extern ID3D12Device* g_pd3dDevice;
 extern ID3D12GraphicsCommandList*   g_pd3dCommandList;
 
-static uint32_t element_byte_Length[NUM_ELEMENT_FORMAT] = {
+uint32_t element_byte_Length[NUM_ELEMENT_FORMAT] = {
       12,
       8,
       12,
@@ -93,16 +93,13 @@ MeshData make_example_vertexdata() {
       uint16_t* index_data_copy = new uint16_t[36];
       std::memcpy(index_data_copy, index_data, sizeof(uint16_t) * 36);
       VertexLayout positionLayout = { POSITION3F32 };
-      MeshData ret;
-      ret._layout = VertexLayout({ POSITION3F32 });
-      //char* vertex_data = new char[8 * ret.byteLength()];
-      ret._dataVertex.reset(reinterpret_cast<char*>(vertex_data));
-      ret.vertexNum = 8;
+      MeshData ret(positionLayout, (char*)vertex_data_copy, sizeof(vertex_data), (char*)index_data_copy, sizeof(index_data));
+      
       return ret;
 }
 
 Primitive3D* make_example_primitive() {
-      Primitive3D* p3D = new Primitive3D();
+      Primitive3D* p3D = new Primitive3D(;
 }
 
 void CreateD3DInputLayoutDesc(VertexLayout l, std::vector<D3D12_INPUT_ELEMENT_DESC>& element_descs) {

@@ -20,6 +20,8 @@ typedef std::vector<ElementFormatName> VertexLayout;
 template <typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
+uint32_t element_byte_Length[NUM_ELEMENT_FORMAT];
+
 struct MeshData {
       VertexLayout _layout; // initialize
       std::unique_ptr<char[]> _dataVertex; // initialize
@@ -75,7 +77,8 @@ struct MeshData {
       }
 
       MeshData(VertexLayout l, char* dataVertex, uint64_t numVertex, char* dataIndex, uint64_t numIndex) : _layout(l), _dataVertex(dataVertex),
-            _dataIndex(dataIndex), vertexNum(numVertex), indexNum(numIndex) {}
+            _dataIndex(dataIndex), vertexNum(numVertex), indexNum(numIndex), indexFormat() {}
+      MeshData() : vertexNum(0), indexNum(0) {}
 };
 
 class Primitive3D {
@@ -116,7 +119,7 @@ private:
       }
 
 public:
-      Primitive3D() : pIdx(curr_max_pIdx++) {
+      Primitive3D(MeshData m) : pIdx(curr_max_pIdx++) {
             assert(pIdx <= NUM_MAX_PRIMITIVE_3D - 1);
       }
 };

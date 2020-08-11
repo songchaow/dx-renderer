@@ -84,6 +84,9 @@
     <ClInclude Include="engine\VetexFormat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="engine\renderpass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -129,6 +132,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="engine\scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine\renderpass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

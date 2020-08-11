@@ -155,6 +155,7 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="dx12renderer.h" />
     <ClInclude Include="engine\primitive.h" />
+    <ClInclude Include="engine\renderpass.h" />
     <ClInclude Include="engine\scene.h" />
     <ClInclude Include="engine\shader.h" />
     <ClInclude Include="engine\VetexFormat.h" />
@@ -177,6 +178,7 @@
     <ClCompile Include="d3dbootstrap.cpp" />
     <ClCompile Include="dx12renderer.cpp" />
     <ClCompile Include="engine\primitive.cpp" />
+    <ClCompile Include="engine\renderpass.cpp" />
     <ClCompile Include="engine\scene.cpp" />
     <ClCompile Include="engine\shader.cpp" />
     <ClCompile Include="ext\imgui\imgui.cpp" />

@@ -3,6 +3,8 @@
 
 std::string Shader::target_version = "_5_0";
 
+ShaderStore ShaderStore::shaderStore;
+
 ShaderPath _shaderPaths[(UINT)ShaderType::NUM_SHADER] = {
       {L"simple.hlsl",L"",L""},
 };

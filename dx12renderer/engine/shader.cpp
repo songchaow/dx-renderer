@@ -7,6 +7,10 @@ ShaderPath _shaderPaths[(UINT)ShaderType::NUM_SHADER] = {
       {L"simple.hlsl",L"",L""},
 };
 
+ShaderConfig _shaderConfigs[(UINT)ShaderType::NUM_SHADER] = {
+      {{L"simple.hlsl",L"",L""}, {POSITION3F32}}
+};
+
 void Shader::compileAndLink()
 {
       UINT compileFlags = 0;
@@ -35,4 +39,17 @@ void Shader::compileAndLink()
                   OutputDebugStringA((char*)err_msg->GetBufferPointer());
             ThrowIfFailed(h);
       }
+}
+
+ShaderStore::ShaderStore() {
+      for (uint32_t i = 0; i < (UINT)ShaderType::NUM_SHADER; i++) {
+            store[i] = Shader(_shaderPaths[i]);
+            CreateD3DInputLayoutDesc(_shaderConfigs[i].input_layout, store[i].input_layout_storage, store[i].input_layout_desc);
+      }
+}
+
+void ShaderStore::init()
+{
+      for (auto& s : store)
+            s.compileAndLink();
 }

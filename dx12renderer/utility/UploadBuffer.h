@@ -11,7 +11,7 @@ public:
       {
             Create(device, elementCount);
       }
-
+      UploadBuffer() = default;
       void Create(ID3D12Device* device, UINT elementCount) {
             mElementByteSize = sizeof(T);
 

@@ -19,9 +19,9 @@ uint32_t element_byte_Length[NUM_ELEMENT_FORMAT] = {
 };
 // seems only name and format are determined
 D3D12_INPUT_ELEMENT_DESC vertex_format_descs[NUM_ELEMENT_FORMAT] = {
-      //semantic name   Semantic Index    Format                              InputSlot   ByteOffset  InputSlotClass
+      //semantic name   Semantic Index    Format                              InputSlot   ByteOffset  InputSlotClass,                                 d
       {"POSITION",      0,                DXGI_FORMAT_R32G32B32A32_FLOAT,     0,          0,          D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,  0},
-      {"TEXCOORD",      0,                DXGI_FORMAT_R32G32_FLOAT,     0,          0,          D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,  0},
+      {"TEXCOORD",      0,                DXGI_FORMAT_R32G32_FLOAT,           0,          0,          D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,  0},
       {"NORMAL",        0,                DXGI_FORMAT_R32G32B32A32_FLOAT,     0,          0,          D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,  0},
       {"TANGENT",       0,                DXGI_FORMAT_R32G32B32A32_FLOAT,     0,          0,          D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,  0}
 };
@@ -76,12 +76,21 @@ Primitive3D* make_example_primitive() {
       return p3D;
 }
 
-void CreateD3DInputLayoutDesc(VertexLayout l, std::vector<D3D12_INPUT_ELEMENT_DESC>& element_descs) {
+void CreateD3DInputLayoutDesc(VertexLayout l, std::vector<D3D12_INPUT_ELEMENT_DESC>& element_descs, D3D12_INPUT_LAYOUT_DESC& desc) {
       element_descs.clear();
-      for (auto& d : l) {
-            element_descs.push_back(vertex_format_descs[d]);
+      for (auto it = l.begin(); it < l.end(); it++) {
+            // find previous elements of the same type, and determine semantic index
+            uint16_t semanticIdx = 0;
+            D3D12_INPUT_ELEMENT_DESC fill_value = vertex_format_descs[*it];
+            if (it != l.begin())
+                  fill_value.AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+            for (auto it_prev = l.begin(); it_prev < it; it_prev++)
+                  if (strcmp(vertex_format_descs[*it_prev].SemanticName, vertex_format_descs[*it].SemanticName) == 0) {
+                        fill_value.SemanticIndex = vertex_format_descs[*it_prev].SemanticIndex + 1;
+                  }
+            element_descs.push_back(fill_value);
       }
-      D3D12_INPUT_LAYOUT_DESC desc;
+
       desc.pInputElementDescs = element_descs.data();
       desc.NumElements = l.size();
 

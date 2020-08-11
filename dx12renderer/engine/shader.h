@@ -1,6 +1,7 @@
 #pragma once
 #include "d3dx12.h"
 #include "utility/utility.h"
+#include "engine/VetexFormat.h"
 
 enum class ShaderType {
       TEST_SHADER,
@@ -14,9 +15,21 @@ struct ShaderPath {
       bool complete() const { return vertex.size() > 0; }
 };
 
+struct ShaderConfig {
+      ShaderPath path;
+      VertexLayout input_layout;
+
+};
+
 extern ShaderPath _shaderPaths[(UINT)ShaderType::NUM_SHADER];
 
+class ShaderStore;
+
 class Shader {
+protected:
+      bool _compile = false;
+      D3D12_INPUT_LAYOUT_DESC input_layout_desc;
+      std::vector<D3D12_INPUT_ELEMENT_DESC> input_layout_storage;
       ShaderPath path;
       std::vector<D3D_SHADER_MACRO> defines;
       ComPtr<ID3DBlob> binary_vs;
@@ -24,5 +37,17 @@ class Shader {
       ComPtr<ID3DBlob> binary_ps;
       ComPtr<ID3DBlob> err_msg;
       static std::string target_version;
+public:
       void compileAndLink();
+      Shader() = default;
+      Shader(ShaderPath path) : path(path) {}
+      friend class ShaderStore;
+};
+
+class ShaderStore {
+      Shader store[(UINT)ShaderType::NUM_SHADER];
+public:
+      static ShaderStore shaderStore;
+      ShaderStore();
+      void init();
 };

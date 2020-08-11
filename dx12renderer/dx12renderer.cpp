@@ -8,6 +8,7 @@
 #include "ext/imgui/imgui_impl_win32.h"
 #include "ext/imgui/imgui_impl_dx12.h"
 #include "engine/scene.h"
+#include "engine/shader.h"
 
 #define MAX_LOADSTRING 100
 
@@ -208,8 +209,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       // Primitives
       Scene::scene.objs3D.push_back(make_example_primitive());
 
+      // Shader
+      ShaderStore::shaderStore.init();
+
+      
       // Pipeline
       CreatePipelineD3D();
+
+      // execute and initialize
+      g_pd3dCommandList->Close();
+      ID3D12CommandList* cmdLists = { g_pd3dCommandList };
+      g_pd3dCommandQueue->ExecuteCommandLists(1, &cmdLists);
 
       // Setup Dear ImGui context
       IMGUI_CHECKVERSION();

@@ -157,6 +157,7 @@
     <ClInclude Include="engine\primitive.h" />
     <ClInclude Include="engine\scene.h" />
     <ClInclude Include="engine\shader.h" />
+    <ClInclude Include="engine\VetexFormat.h" />
     <ClInclude Include="ext\imgui\imconfig.h" />
     <ClInclude Include="ext\imgui\imgui.h" />
     <ClInclude Include="ext\imgui\imgui_impl_dx12.h" />

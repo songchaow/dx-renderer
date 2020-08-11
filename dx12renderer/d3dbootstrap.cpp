@@ -131,6 +131,9 @@ bool CreatePipelineD3D() {
       SIZE_T size = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
       cbv.Offset(1, size);
       g_pd3dCommandList->SetGraphicsRootDescriptorTable(0, cbv);
+
+      // create PSO
+
 }
 
 bool CreateDeviceD3D(HWND hWnd)

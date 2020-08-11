@@ -5,17 +5,7 @@
 #include "d3dbootstrap.h"
 #include <cassert>
 #include "utility/utility.h"
-
-// an element: point3f, normal3f, etc...
-enum ElementFormatName {
-      POSITION3F32,
-      TEXCOORD,
-      NORMAL3F32,
-      TANGENT3F32,
-      NUM_ELEMENT_FORMAT
-};
-
-typedef std::vector<ElementFormatName> VertexLayout;
+#include "engine/VetexFormat.h"
 
 template <typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
@@ -26,6 +16,10 @@ struct MeshData {
       VertexLayout _layout; // initialize
       std::unique_ptr<char[]> _dataVertex; // initialize
       std::unique_ptr<char[]> _dataIndex; // initialize
+
+      ComPtr<ID3D12Resource> uploadBufferVertex;
+      ComPtr<ID3D12Resource> uploadBufferIndex;
+
       ComPtr<ID3D12Resource> vertexBuffer = nullptr;
       ComPtr<ID3D12Resource> indexBuffer = nullptr;
       D3D12_VERTEX_BUFFER_VIEW vbv;
@@ -54,8 +48,8 @@ struct MeshData {
             if (!_dataVertex)
                   return;
             // create vertex buffer
-            ComPtr<ID3D12Resource> uploadBuffer = nullptr;
-            vertexBuffer = d3dUtil::CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataVertex.get(), byteLength(), uploadBuffer);
+
+            vertexBuffer = d3dUtil::CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataVertex.get(), byteLength(), uploadBufferVertex);
             // create VBV
             vbv.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
             vbv.SizeInBytes = byteLength();
@@ -66,7 +60,6 @@ struct MeshData {
 
             // create index buffer
             // reuse uploadBuffer? no
-            ComPtr<ID3D12Resource> uploadBufferIndex;
             indexBuffer = d3dUtil::CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataIndex.get(), indexByteLength(), uploadBufferIndex);
             // create IBV
             ibv.BufferLocation = indexBuffer->GetGPUVirtualAddress();
@@ -118,7 +111,7 @@ public:
             g_pd3dDevice->CreateConstantBufferView(&cbv_desc, hdl);
 
             // mesh
-
+            mesh.LoadtoBuffer();
       }
       D3D12_CPU_DESCRIPTOR_HANDLE ConstantBufferView() const {
             SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);

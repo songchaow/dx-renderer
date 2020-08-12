@@ -2,10 +2,16 @@
 #include "stdafx.h"
 #include <d3d12.h>
 #include <dxgi1_4.h>
+#include "utility/UploadBuffer.h"
+
+struct DataPerPrimitive3D {
+      DirectX::XMFLOAT4X4 obj2world;
+};
 
 struct FrameContext
 {
       ID3D12CommandAllocator* CommandAllocator;
+      UploadBuffer<DataPerPrimitive3D> constant_buffer_primitive3d;
       UINT64                  FenceValue;
 };
 
@@ -21,6 +27,7 @@ extern ID3D12Fence*                 g_fence;
 extern ID3D12Resource*              g_mainRenderTargetResource[NUM_BACK_BUFFERS];
 extern D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS];
 extern ID3D12GraphicsCommandList*   g_pd3dCommandList;
+extern UINT                         g_frameIndex;
 
 
 

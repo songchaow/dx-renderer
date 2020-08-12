@@ -20,7 +20,7 @@
 
 
 FrameContext                 g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
-static UINT                         g_frameIndex = 0;
+UINT                         g_frameIndex = 0;
 
 ID3D12Device*                g_pd3dDevice = NULL;
 static ID3D12DescriptorHeap*        g_pd3dRtvDescHeap = NULL;
@@ -190,7 +190,7 @@ bool CreateDeviceD3D(HWND hWnd)
       {
             D3D12_DESCRIPTOR_HEAP_DESC desc = {};
             desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-            desc.NumDescriptors = 1 + Primitive3D::NUM_MAX_PRIMITIVE_3D; // the first for imgui, and others for constant buffer
+            desc.NumDescriptors = 1 + Primitive3D::NUM_MAX_PRIMITIVE_3D * NUM_FRAMES_IN_FLIGHT; // the first for imgui, and others for constant buffer
             desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
             if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)
                   return false;

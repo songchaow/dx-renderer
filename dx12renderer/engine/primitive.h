@@ -80,6 +80,7 @@ struct MeshData {
 class Primitive3D {
 public:
       static constexpr uint32_t NUM_MAX_PRIMITIVE_3D = 200;
+      
 private:
       // pIdx
       static uint32_t curr_max_pIdx;
@@ -87,40 +88,46 @@ private:
       // mesh
       MeshData mesh;
       // constant buffer content
-      struct DataPerObject {
-            DirectX::XMFLOAT4X4 obj2world;
-      };
-      DataPerObject constant_buffer_cpu;
-      static UploadBuffer<DataPerObject> constant_buffer;
+      
+      DataPerPrimitive3D constant_buffer_cpu;
+      bool constant_buffer_dirty = false;
+      //static UploadBuffer<DataPerPrimitive3D> constant_buffer;
 public:
       static void initConstBuffer() {
-            constant_buffer.Create(g_pd3dDevice, NUM_MAX_PRIMITIVE_3D);
+            // init for each frame resource
+            for (uint32_t i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
+                  g_frameContext[i].constant_buffer_primitive3d.Create(g_pd3dDevice, NUM_MAX_PRIMITIVE_3D);
       }
       void init() {
-            // update constant buffer (only one globally)
-            constant_buffer.CopyData(pIdx, constant_buffer_cpu);
-            // create CBV (there's one for each primitive3d), located in a certain place in g_pd3dSrvDescHeap
-            uint32_t perObjectByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(DataPerObject));
+            // create CBV (there's one for each primitive3d) on each frame resource, located in a certain place in g_pd3dSrvDescHeap
+            uint32_t perObjectByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(DataPerPrimitive3D));
             uint32_t offset = pIdx * perObjectByteSize;
-            D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc;
-            cbv_desc.BufferLocation = constant_buffer.Resource()->GetGPUVirtualAddress();
-            cbv_desc.SizeInBytes = perObjectByteSize;
-            SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-            D3D12_CPU_DESCRIPTOR_HANDLE hdl = g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart();
-            hdl.ptr += constBufferViewSize * (pIdx + 1);
-            g_pd3dDevice->CreateConstantBufferView(&cbv_desc, hdl);
+            for (uint32_t idx = 0; idx < NUM_FRAMES_IN_FLIGHT; idx++) {
+                  // update constant buffer on every frame
+                  g_frameContext[g_frameIndex].constant_buffer_primitive3d.CopyData(pIdx, constant_buffer_cpu);
+                  D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc;
+                  cbv_desc.BufferLocation = g_frameContext[g_frameIndex].constant_buffer_primitive3d.Resource()->GetGPUVirtualAddress();
+                  cbv_desc.SizeInBytes = perObjectByteSize;
+                  SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+                  D3D12_CPU_DESCRIPTOR_HANDLE hdl = ConstantBufferViewCurrFrame();
+                  g_pd3dDevice->CreateConstantBufferView(&cbv_desc, hdl); // the view need to be created frequently!
+            }
 
             // mesh
             mesh.LoadtoBuffer();
       }
-      D3D12_CPU_DESCRIPTOR_HANDLE ConstantBufferView() const {
+      D3D12_CPU_DESCRIPTOR_HANDLE ConstantBufferViewCurrFrame() const {
             SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             D3D12_CPU_DESCRIPTOR_HANDLE hdl = g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart();
-            hdl.ptr += constBufferViewSize * (pIdx + 1);
+            hdl.ptr += constBufferViewSize * (pIdx + 1) + NUM_MAX_PRIMITIVE_3D * constBufferViewSize * g_frameIndex;
             return hdl;
       }
+      D3D12_CPU_DESCRIPTOR_HANDLE ConstantBufferView(uint32_t frameIdx) const {
+            return D3D12_CPU_DESCRIPTOR_HANDLE();
+      }
       void updateGPUData() {
-            constant_buffer.CopyData(pIdx, constant_buffer_cpu);
+            g_frameContext[g_frameIndex].constant_buffer_primitive3d.CopyData(pIdx, constant_buffer_cpu);
+
       }
 
 public:

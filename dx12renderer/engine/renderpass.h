@@ -3,7 +3,8 @@
 
 class RenderPass {
       Shader* shader;
-      ID3D12RootSignature* root_signature; // owned
+      ComPtr< ID3D12RootSignature> root_signature;
+      //ID3D12RootSignature* root_signature; // owned
       VertexLayout input_layout;
       std::vector<D3D12_INPUT_ELEMENT_DESC> input_layout_storage;
       D3D12_RASTERIZER_DESC rasterizer_state = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -13,7 +14,7 @@ class RenderPass {
       D3D12_PRIMITIVE_TOPOLOGY_TYPE primitive_topology_type = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
       // render targets
-
+      uint32_t num_render_targets = 1;
 
       D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc;
 
@@ -21,7 +22,7 @@ class RenderPass {
       void fillShaderintoPSO();
       virtual void CreatePSO() {
             // set root signature
-            pso_desc.pRootSignature = root_signature;
+            pso_desc.pRootSignature = root_signature.Get();
             // set input layout from input_layout
             CreateD3DInputLayoutDesc(input_layout, input_layout_storage, pso_desc.InputLayout);
             // set shader
@@ -36,5 +37,8 @@ class RenderPass {
             pso_desc.PrimitiveTopologyType = primitive_topology_type;
 
             // set num render targets
+      }
+      void draw() {
+
       }
 };

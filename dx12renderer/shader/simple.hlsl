@@ -8,7 +8,7 @@ cbuffer cbPerFrame : register(b0) {
     float4x4 cam2ndc;
 }
 
-cbuffer cbPerObject : register(b0) {
+cbuffer cbPerObject : register(b1) {
     float4x4 obj2world;
 }
 

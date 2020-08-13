@@ -15,6 +15,12 @@ struct FrameContext
       UINT64                  FenceValue;
 };
 
+enum class CBVLocation {
+      IMGUI = 0,
+      PER_FRAME = 1,
+      PER_OBJECT = 2
+};
+
 constexpr int NUM_FRAMES_IN_FLIGHT = 3;
 constexpr int NUM_BACK_BUFFERS = 3;
 extern ID3D12Device* g_pd3dDevice;

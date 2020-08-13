@@ -94,45 +94,20 @@ void CleanupRenderTarget()
 }
 
 bool CreatePipelineD3D() {
-      // create default root signature
-      CD3DX12_ROOT_PARAMETER root_param;
-
-      // only CBV for now
-      CD3DX12_DESCRIPTOR_RANGE cbvTable;
-      cbvTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);
-
-      root_param.InitAsDescriptorTable(1, &cbvTable);
-
-      // create root signature
-      CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(1, &root_param, 0, nullptr,
-            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-      ComPtr<ID3DBlob> serializedRootSig = nullptr;
-      ComPtr<ID3DBlob> errorBlob = nullptr;
-      HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
-            serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
-
-      if (errorBlob != nullptr)
-      {
-            ::OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-      }
-      ThrowIfFailed(hr);
-
-      ThrowIfFailed(g_pd3dDevice->CreateRootSignature(
-            0,
-            serializedRootSig->GetBufferPointer(),
-            serializedRootSig->GetBufferSize(),
-            IID_PPV_ARGS(&g_defaultRootSignature)));
+      
 
       // bind to pipeline
-      g_pd3dCommandList->SetGraphicsRootSignature(g_defaultRootSignature);
+      //g_pd3dCommandList->SetGraphicsRootSignature(g_defaultRootSignature); // set from render pass when used for the first time
       g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
 
+#if 0
       CD3DX12_GPU_DESCRIPTOR_HANDLE cbv(g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
       SIZE_T size = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
       cbv.Offset(1, size);
       g_pd3dCommandList->SetGraphicsRootDescriptorTable(0, cbv);
+#endif
 
-      // create PSO
+      // create PSO now doned in render pass.
 
 }
 
@@ -190,7 +165,8 @@ bool CreateDeviceD3D(HWND hWnd)
       {
             D3D12_DESCRIPTOR_HEAP_DESC desc = {};
             desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-            desc.NumDescriptors = 1 + Primitive3D::NUM_MAX_PRIMITIVE_3D * NUM_FRAMES_IN_FLIGHT; // the first for imgui, and others for constant buffer
+            // the first for imgui, the second for per frame, and others for constant buffer per object
+            desc.NumDescriptors = UINT(CBVLocation::PER_OBJECT) + Primitive3D::NUM_MAX_PRIMITIVE_3D * NUM_FRAMES_IN_FLIGHT; 
             desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
             if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)
                   return false;

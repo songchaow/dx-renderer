@@ -79,6 +79,8 @@ void RenderFrame() {
     UINT backBufferIdx = g_pSwapChain->GetCurrentBackBufferIndex();
     frameCtxt->CommandAllocator->Reset();
 
+    // TODO: update camera
+
     // TODO: render scene here
 
     RenderUI();

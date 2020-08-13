@@ -110,7 +110,7 @@ public:
                   cbv_desc.SizeInBytes = perObjectByteSize;
                   SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
                   D3D12_CPU_DESCRIPTOR_HANDLE hdl = ConstantBufferViewCurrFrame();
-                  g_pd3dDevice->CreateConstantBufferView(&cbv_desc, hdl); // the view need to be created frequently!
+                  g_pd3dDevice->CreateConstantBufferView(&cbv_desc, hdl); // the view need to be created frequently! no
             }
 
             // mesh
@@ -119,7 +119,13 @@ public:
       D3D12_CPU_DESCRIPTOR_HANDLE ConstantBufferViewCurrFrame() const {
             SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             D3D12_CPU_DESCRIPTOR_HANDLE hdl = g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart();
-            hdl.ptr += constBufferViewSize * (pIdx + 1) + NUM_MAX_PRIMITIVE_3D * constBufferViewSize * g_frameIndex;
+            hdl.ptr += constBufferViewSize * (pIdx + (SIZE_T)CBVLocation::PER_OBJECT) + NUM_MAX_PRIMITIVE_3D * constBufferViewSize * g_frameIndex;
+            return hdl;
+      }
+      D3D12_GPU_DESCRIPTOR_HANDLE ConstantBufferViewGPU() const {
+            SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            D3D12_GPU_DESCRIPTOR_HANDLE hdl = g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart();
+            hdl.ptr += constBufferViewSize * (pIdx + (SIZE_T)CBVLocation::PER_OBJECT) + NUM_MAX_PRIMITIVE_3D * constBufferViewSize * g_frameIndex;
             return hdl;
       }
       D3D12_CPU_DESCRIPTOR_HANDLE ConstantBufferView(uint32_t frameIdx) const {

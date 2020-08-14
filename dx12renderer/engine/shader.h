@@ -38,10 +38,14 @@ protected:
       ComPtr<ID3DBlob> err_msg;
       static std::string target_version;
 public:
-      void compileAndLink();
+      bool compileAndLink();
       Shader() = default;
       Shader(ShaderPath path) : path(path) {}
+      bool isCompiled() const { return _compile; }
       friend class ShaderStore;
+      void setVSByteCode(D3D12_SHADER_BYTECODE& bytecode);
+      void setGSByteCode(D3D12_SHADER_BYTECODE& bytecode);
+      void setPSByteCode(D3D12_SHADER_BYTECODE& bytecode);
 };
 
 class ShaderStore {

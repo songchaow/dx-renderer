@@ -35,6 +35,7 @@ void RenderPass::draw()
 {
       // switch pso
       g_pd3dCommandList->SetPipelineState(pso.Get());
+      // later: update const buffer cbPerPass if changed
       for (auto* p : Scene::scene.objs3D) {
             // set root descriptor table for const buffer (root param slot 1)
             g_pd3dCommandList->SetGraphicsRootDescriptorTable(1, p->ConstantBufferViewGPU());
@@ -61,4 +62,10 @@ void CreateSimpleRenderPass() {
             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 
+}
+
+void Resource::Create()
+{
+      ThrowIfFailed(g_pd3dDevice->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE,
+            &desc, curr_state, nullptr, IID_PPV_ARGS(resource.GetAddressOf())));
 }

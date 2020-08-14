@@ -1,5 +1,6 @@
 #include "shader.h"
 #include <d3dcompiler.h>
+#include <cstdlib>
 
 std::string Shader::target_version = "_5_0";
 
@@ -13,7 +14,7 @@ ShaderConfig _shaderConfigs[(UINT)ShaderType::NUM_SHADER] = {
       {{L"simple.hlsl",L"",L""}, {POSITION3F32}}
 };
 
-void Shader::compileAndLink()
+bool Shader::compileAndLink()
 {
       UINT compileFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)
@@ -23,24 +24,48 @@ void Shader::compileAndLink()
       if (path.vertex.size() > 0) {
             HRESULT h = D3DCompileFromFile(path.vertex.c_str(), defines.data(), D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", ("vs" + target_version).c_str(),
                   compileFlags, 0, binary_vs.GetAddressOf(), err_msg.GetAddressOf());
-            if (err_msg != nullptr)
+            if (err_msg != nullptr) {
                   OutputDebugStringA((char*)err_msg->GetBufferPointer());
+                  return false;
+            }
             ThrowIfFailed(h);
       }
       if (path.geometry.size() > 0) {
             HRESULT h = D3DCompileFromFile(path.vertex.c_str(), defines.data(), D3D_COMPILE_STANDARD_FILE_INCLUDE, "GS", ("gs" + target_version).c_str(),
                   compileFlags, 0, binary_gs.GetAddressOf(), err_msg.GetAddressOf());
-            if (err_msg != nullptr)
+            if (err_msg != nullptr) {
                   OutputDebugStringA((char*)err_msg->GetBufferPointer());
+                  return false;
+            }
             ThrowIfFailed(h);
       }
       if (path.fragment.size() > 0) {
             HRESULT h = D3DCompileFromFile(path.vertex.c_str(), defines.data(), D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", ("ps" + target_version).c_str(),
                   compileFlags, 0, binary_ps.GetAddressOf(), err_msg.GetAddressOf());
-            if (err_msg != nullptr)
+            if (err_msg != nullptr) {
                   OutputDebugStringA((char*)err_msg->GetBufferPointer());
+                  return false;
+            }
             ThrowIfFailed(h);
       }
+      _compile = true;
+      return true;
+}
+
+void Shader::setVSByteCode(D3D12_SHADER_BYTECODE& bytecode)
+{
+      bytecode.pShaderBytecode = binary_vs->GetBufferPointer();
+      bytecode.BytecodeLength = binary_vs->GetBufferSize();
+}
+void Shader::setGSByteCode(D3D12_SHADER_BYTECODE& bytecode)
+{
+      bytecode.pShaderBytecode = binary_gs->GetBufferPointer();
+      bytecode.BytecodeLength = binary_gs->GetBufferSize();
+}
+void Shader::setPSByteCode(D3D12_SHADER_BYTECODE& bytecode)
+{
+      bytecode.pShaderBytecode = binary_ps->GetBufferPointer();
+      bytecode.BytecodeLength = binary_ps->GetBufferSize();
 }
 
 ShaderStore::ShaderStore() {
@@ -53,5 +78,6 @@ ShaderStore::ShaderStore() {
 void ShaderStore::init()
 {
       for (auto& s : store)
-            s.compileAndLink();
+            if (!s.compileAndLink())
+                  std::exit(0);
 }

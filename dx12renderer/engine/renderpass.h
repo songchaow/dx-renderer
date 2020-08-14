@@ -1,6 +1,48 @@
 #pragma once
 #include "engine/shader.h"
 #include <string>
+#include "common/geometry.h"
+
+struct Resource {
+      UINT id;
+      enum ResourceType {
+            TEXTURE2D,          // default heap
+            RENDER_TARGET,    // can also be texture, default heap
+            CONST_BUFFER,     // upload heap
+      };
+      ResourceType type;
+      //union ResourceSize {
+      //      Point2i size2d; // element counts, NOT byte size
+      //      uint32_t length; // byte length?
+      //};
+      //ResourceSize size;
+      uint32_t depth = 1;
+      D3D12_RESOURCE_DESC desc;
+      ComPtr<ID3D12Resource> resource;
+      D3D12_RESOURCE_STATES curr_state;
+      void Create();
+
+      // render target or texture2d
+      Resource(ResourceType type, UINT width, UINT height, DXGI_FORMAT element_format, UINT depth = 1, UINT16 miplevels = 1,
+            D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_GENERIC_READ, UINT sampleCount = 1, UINT sampleQuality = 0)
+            : type(type), curr_state(initialState) {
+            desc.Alignment = 0;
+            desc.MipLevels = miplevels;
+            desc.Format = element_format;
+            desc.SampleDesc.Count = sampleCount;
+            desc.SampleDesc.Quality = sampleQuality;
+            desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+            desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+            
+            desc.Width = width; desc.Height = height; desc.DepthOrArraySize = depth;
+            if (type == RENDER_TARGET)
+                  desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+      }
+
+
+      
+};
 
 class RenderPass {
       std::string name;
@@ -9,22 +51,33 @@ class RenderPass {
       D3D12_ROOT_SIGNATURE_DESC root_signature_desc;
       ComPtr< ID3D12RootSignature> root_signature;
       //ID3D12RootSignature* root_signature; // owned
+
       // other attributes
       D3D12_RASTERIZER_DESC rasterizer_state = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
       D3D12_DEPTH_STENCIL_DESC depth_stencil_state = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
       D3D12_BLEND_DESC blend_state = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
       UINT sample_mask = UINT_MAX;
       D3D12_PRIMITIVE_TOPOLOGY_TYPE primitive_topology_type = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-      uint32_t num_render_targets = 1;
+      
+      //uint32_t num_render_targets = 1;
+      
 
       std::vector<D3D12_INPUT_ELEMENT_DESC> input_layout_storage;
       D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc;
       ComPtr<ID3D12PipelineState> pso;
       // render targets
+      std::vector<Resource*> render_targets;
+      Resource* depth_stencil = nullptr;
 
 
-
-      void fillShaderintoPSO();
+      void fillShaderintoPSO() {
+            if (!shader->isCompiled()) {
+                  shader->compileAndLink();
+                  shader->setVSByteCode(pso_desc.VS);
+                  shader->setGSByteCode(pso_desc.GS);
+                  shader->setPSByteCode(pso_desc.PS);
+            }
+      }
       void CreateRootSignature();
       virtual void CreatePSO() {
             // set root signature
@@ -43,8 +96,14 @@ class RenderPass {
             pso_desc.PrimitiveTopologyType = primitive_topology_type;
 
             // set num render targets
-            pso_desc.NumRenderTargets = num_render_targets;
-
+            pso_desc.NumRenderTargets = render_targets.size();
+            for (uint32_t i = 0; i < render_targets.size(); i++) {
+                  pso_desc.RTVFormats[i] = render_targets[i]->desc.Format;
+            }
+            if (depth_stencil)
+                  pso_desc.DSVFormat = depth_stencil->desc.Format;
+            else
+                  pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
       }
       virtual void draw();
 

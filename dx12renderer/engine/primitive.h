@@ -93,15 +93,21 @@ private:
       bool constant_buffer_dirty = false;
       //static UploadBuffer<DataPerPrimitive3D> constant_buffer;
 public:
+      // init the continuous constant buffer as a whole , for all primitives
       static void initConstBuffer() {
             // init for each frame resource
             for (uint32_t i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
                   g_frameContext[i].constant_buffer_primitive3d.Create(g_pd3dDevice, NUM_MAX_PRIMITIVE_3D);
       }
       void init() {
-            // create CBV (there's one for each primitive3d) on each frame resource, located in a certain place in g_pd3dSrvDescHeap
             uint32_t perObjectByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(DataPerPrimitive3D));
             uint32_t offset = pIdx * perObjectByteSize;
+            for (uint32_t idx = 0; idx < NUM_FRAMES_IN_FLIGHT; idx++) {
+                  // update constant buffer on every frame
+                  g_frameContext[g_frameIndex].constant_buffer_primitive3d.CopyData(pIdx, constant_buffer_cpu);
+            }
+            #if 0
+            // create CBV (there's one for each primitive3d) on each frame resource, located in a certain place in g_pd3dSrvDescHeap
             for (uint32_t idx = 0; idx < NUM_FRAMES_IN_FLIGHT; idx++) {
                   // update constant buffer on every frame
                   g_frameContext[g_frameIndex].constant_buffer_primitive3d.CopyData(pIdx, constant_buffer_cpu);
@@ -112,10 +118,18 @@ public:
                   D3D12_CPU_DESCRIPTOR_HANDLE hdl = ConstantBufferViewCurrFrame();
                   g_pd3dDevice->CreateConstantBufferView(&cbv_desc, hdl); // the view need to be created frequently! no
             }
+            #endif
 
             // mesh
             mesh.LoadtoBuffer();
       }
+      D3D12_GPU_VIRTUAL_ADDRESS ConstBufferGPUAddressCurrFrame() const {
+            UINT64 perObjectByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(DataPerPrimitive3D));
+            UINT64 offset = pIdx * perObjectByteSize;
+            D3D12_GPU_VIRTUAL_ADDRESS startAddr = g_frameContext[g_frameIndex].constant_buffer_primitive3d.Resource()->GetGPUVirtualAddress();
+            return startAddr + offset;
+      }
+      #if 0
       D3D12_CPU_DESCRIPTOR_HANDLE ConstantBufferViewCurrFrame() const {
             SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             D3D12_CPU_DESCRIPTOR_HANDLE hdl = g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart();
@@ -131,6 +145,7 @@ public:
       D3D12_CPU_DESCRIPTOR_HANDLE ConstantBufferView(uint32_t frameIdx) const {
             return D3D12_CPU_DESCRIPTOR_HANDLE();
       }
+      #endif
       void updateGPUData() {
             g_frameContext[g_frameIndex].constant_buffer_primitive3d.CopyData(pIdx, constant_buffer_cpu);
 

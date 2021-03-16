@@ -32,9 +32,12 @@ protected:
       std::vector<D3D12_INPUT_ELEMENT_DESC> input_layout_storage;
       ShaderPath path;
       std::vector<D3D_SHADER_MACRO> defines;
-      ComPtr<ID3DBlob> binary_vs;
-      ComPtr<ID3DBlob> binary_gs;
-      ComPtr<ID3DBlob> binary_ps;
+      struct ShaderBinary {
+            ComPtr<ID3DBlob> binary_vs;
+            ComPtr<ID3DBlob> binary_gs;
+            ComPtr<ID3DBlob> binary_ps;
+      };
+      ShaderBinary _binary;
       ComPtr<ID3DBlob> err_msg;
       static std::string target_version;
 public:
@@ -46,6 +49,7 @@ public:
       void setVSByteCode(D3D12_SHADER_BYTECODE& bytecode);
       void setGSByteCode(D3D12_SHADER_BYTECODE& bytecode);
       void setPSByteCode(D3D12_SHADER_BYTECODE& bytecode);
+      const ShaderBinary GetBinary() const { return _binary; }
 };
 
 class ShaderStore {
@@ -54,4 +58,5 @@ public:
       static ShaderStore shaderStore;
       ShaderStore();
       void init();
+      Shader& operator[](int32_t idx) { return store[idx]; }
 };

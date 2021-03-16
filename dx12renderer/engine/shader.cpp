@@ -23,7 +23,7 @@ bool Shader::compileAndLink()
 #endif
       if (path.vertex.size() > 0) {
             HRESULT h = D3DCompileFromFile(path.vertex.c_str(), defines.data(), D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", ("vs" + target_version).c_str(),
-                  compileFlags, 0, binary_vs.GetAddressOf(), err_msg.GetAddressOf());
+                  compileFlags, 0, _binary.binary_vs.GetAddressOf(), err_msg.GetAddressOf());
             if (err_msg != nullptr) {
                   OutputDebugStringA((char*)err_msg->GetBufferPointer());
                   return false;
@@ -32,7 +32,7 @@ bool Shader::compileAndLink()
       }
       if (path.geometry.size() > 0) {
             HRESULT h = D3DCompileFromFile(path.vertex.c_str(), defines.data(), D3D_COMPILE_STANDARD_FILE_INCLUDE, "GS", ("gs" + target_version).c_str(),
-                  compileFlags, 0, binary_gs.GetAddressOf(), err_msg.GetAddressOf());
+                  compileFlags, 0, _binary.binary_gs.GetAddressOf(), err_msg.GetAddressOf());
             if (err_msg != nullptr) {
                   OutputDebugStringA((char*)err_msg->GetBufferPointer());
                   return false;
@@ -41,7 +41,7 @@ bool Shader::compileAndLink()
       }
       if (path.fragment.size() > 0) {
             HRESULT h = D3DCompileFromFile(path.vertex.c_str(), defines.data(), D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", ("ps" + target_version).c_str(),
-                  compileFlags, 0, binary_ps.GetAddressOf(), err_msg.GetAddressOf());
+                  compileFlags, 0, _binary.binary_ps.GetAddressOf(), err_msg.GetAddressOf());
             if (err_msg != nullptr) {
                   OutputDebugStringA((char*)err_msg->GetBufferPointer());
                   return false;
@@ -54,18 +54,18 @@ bool Shader::compileAndLink()
 
 void Shader::setVSByteCode(D3D12_SHADER_BYTECODE& bytecode)
 {
-      bytecode.pShaderBytecode = binary_vs->GetBufferPointer();
-      bytecode.BytecodeLength = binary_vs->GetBufferSize();
+      bytecode.pShaderBytecode = _binary.binary_vs->GetBufferPointer();
+      bytecode.BytecodeLength = _binary.binary_vs->GetBufferSize();
 }
 void Shader::setGSByteCode(D3D12_SHADER_BYTECODE& bytecode)
 {
-      bytecode.pShaderBytecode = binary_gs->GetBufferPointer();
-      bytecode.BytecodeLength = binary_gs->GetBufferSize();
+      bytecode.pShaderBytecode = _binary.binary_gs->GetBufferPointer();
+      bytecode.BytecodeLength = _binary.binary_gs->GetBufferSize();
 }
 void Shader::setPSByteCode(D3D12_SHADER_BYTECODE& bytecode)
 {
-      bytecode.pShaderBytecode = binary_ps->GetBufferPointer();
-      bytecode.BytecodeLength = binary_ps->GetBufferSize();
+      bytecode.pShaderBytecode = _binary.binary_ps->GetBufferPointer();
+      bytecode.BytecodeLength = _binary.binary_ps->GetBufferSize();
 }
 
 ShaderStore::ShaderStore() {

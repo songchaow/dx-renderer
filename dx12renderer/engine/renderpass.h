@@ -43,6 +43,7 @@ struct Resource {
 
       
 };
+#include <cassert>
 
 class RenderPass {
       std::string name;
@@ -78,6 +79,24 @@ class RenderPass {
                   shader->setPSByteCode(pso_desc.PS);
             }
       }
+
+
+      void fillShaderintoPSODesc() {
+            assert(shader!=nullptr);
+            auto bin = shader->GetBinary();
+            pso_desc.VS = {
+                  bin.binary_vs->GetBufferPointer(),
+                  bin.binary_vs->GetBufferSize()
+            };
+            pso_desc.GS = {
+                  bin.binary_gs->GetBufferPointer(),
+                  bin.binary_gs->GetBufferSize()
+            };
+            pso_desc.PS = {
+                  bin.binary_ps->GetBufferPointer(),
+                  bin.binary_ps->GetBufferSize()
+            };
+      }
       void CreateRootSignature();
       virtual void CreatePSO() {
             // set root signature
@@ -85,7 +104,7 @@ class RenderPass {
             // set input layout from input_layout
             CreateD3DInputLayoutDesc(input_layout, input_layout_storage, pso_desc.InputLayout);
             // set shader
-            fillShaderintoPSO();
+            fillShaderintoPSODesc();
             
             // set raster, depth/stencil, blend state
             pso_desc.RasterizerState = rasterizer_state;

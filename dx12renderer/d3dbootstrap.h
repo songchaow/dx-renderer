@@ -18,7 +18,8 @@ struct FrameContext
 enum class CBVLocation {
       IMGUI = 0,
       PER_FRAME = 1,
-      PER_OBJECT = 2
+      PER_OBJECT = 2,
+      NUM_CBV
 };
 
 constexpr int NUM_FRAMES_IN_FLIGHT = 3;

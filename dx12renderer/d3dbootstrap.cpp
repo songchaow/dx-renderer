@@ -114,24 +114,6 @@ bool CreatePipelineD3D() {
 
 bool CreateDeviceD3D(HWND hWnd)
 {
-      // Setup swap chain
-      DXGI_SWAP_CHAIN_DESC1 sd;
-      {
-            ZeroMemory(&sd, sizeof(sd));
-            sd.BufferCount = NUM_BACK_BUFFERS;
-            sd.Width = 0;
-            sd.Height = 0;
-            sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            sd.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-            sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-            sd.SampleDesc.Count = 1;
-            sd.SampleDesc.Quality = 0;
-            sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-            sd.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-            sd.Scaling = DXGI_SCALING_STRETCH;
-            sd.Stereo = FALSE;
-      }
-
 #ifdef DX12_ENABLE_DEBUG_LAYER
       ID3D12Debug* pdx12Debug = NULL;
       if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&pdx12Debug))))
@@ -198,6 +180,23 @@ bool CreateDeviceD3D(HWND hWnd)
             return false;
 
       {
+            // Setup swap chain
+            DXGI_SWAP_CHAIN_DESC1 sd;
+            {
+                  ZeroMemory(&sd, sizeof(sd));
+                  sd.BufferCount = NUM_BACK_BUFFERS;
+                  sd.Width = 0;
+                  sd.Height = 0;
+                  sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+                  sd.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+                  sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+                  sd.SampleDesc.Count = 1;
+                  sd.SampleDesc.Quality = 0;
+                  sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+                  sd.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+                  sd.Scaling = DXGI_SCALING_STRETCH;
+                  sd.Stereo = FALSE;
+            }
             IDXGIFactory4* dxgiFactory = NULL;
             IDXGISwapChain1* swapChain1 = NULL;
             if (CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)) != S_OK ||

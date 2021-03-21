@@ -14,8 +14,8 @@ extern uint32_t element_byte_Length[NUM_ELEMENT_FORMAT];
 
 struct MeshData {
       VertexLayout _layout; // initialize
-      std::unique_ptr<char[]> _dataVertex; // initialize
-      std::unique_ptr<char[]> _dataIndex; // initialize
+      std::unique_ptr<char[]> _dataVertex_host; // initialize
+      std::unique_ptr<char[]> _dataIndex_host; // initialize
 
       ComPtr<ID3D12Resource> uploadBufferVertex;
       ComPtr<ID3D12Resource> uploadBufferIndex;
@@ -45,11 +45,11 @@ struct MeshData {
             return len;
       }
       void LoadtoBuffer() {
-            if (!_dataVertex)
+            if (!_dataVertex_host)
                   return;
             // create vertex buffer
 
-            vertexBuffer = d3dUtil::CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataVertex.get(), byteLength(), uploadBufferVertex);
+            vertexBuffer = d3dUtil::CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataVertex_host.get(), byteLength(), uploadBufferVertex);
             // create VBV
             vbv.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
             vbv.SizeInBytes = byteLength();
@@ -60,7 +60,7 @@ struct MeshData {
 
             // create index buffer
             // reuse uploadBuffer? no
-            indexBuffer = d3dUtil::CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataIndex.get(), indexByteLength(), uploadBufferIndex);
+            indexBuffer = d3dUtil::CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataIndex_host.get(), indexByteLength(), uploadBufferIndex);
             // create IBV
             ibv.BufferLocation = indexBuffer->GetGPUVirtualAddress();
             ibv.SizeInBytes = indexByteLength();
@@ -70,10 +70,10 @@ struct MeshData {
             // g_pd3dCommandList->IASetIndexBuffer(&ibv);
       }
 
-      MeshData(VertexLayout l, char* dataVertex, uint64_t numVertex, char* dataIndex, uint64_t numIndex) : _layout(l), _dataVertex(dataVertex),
-            _dataIndex(dataIndex), vertexNum(numVertex), indexNum(numIndex), indexFormat(DXGI_FORMAT_R16_UINT) {}
+      MeshData(VertexLayout l, char* dataVertex, uint64_t numVertex, char* dataIndex, uint64_t numIndex) : _layout(l), _dataVertex_host(dataVertex),
+            _dataIndex_host(dataIndex), vertexNum(numVertex), indexNum(numIndex), indexFormat(DXGI_FORMAT_R16_UINT) {}
       MeshData() : vertexNum(0), indexNum(0) {}
-      MeshData(MeshData&& m) : _layout(m._layout), _dataVertex(std::move(m._dataVertex)), _dataIndex(std::move(m._dataIndex)), vertexBuffer(m.vertexBuffer),
+      MeshData(MeshData&& m) : _layout(m._layout), _dataVertex_host(std::move(m._dataVertex_host)), _dataIndex_host(std::move(m._dataIndex_host)), vertexBuffer(m.vertexBuffer),
             indexBuffer(m.indexBuffer), vbv(m.vbv), ibv(m.ibv), vertexNum(m.vertexNum), indexNum(m.indexNum), indexFormat(m.indexFormat) {}
 };
 

@@ -13,9 +13,12 @@ using ComPtr = Microsoft::WRL::ComPtr<T>;
 extern uint32_t element_byte_Length[NUM_ELEMENT_FORMAT];
 
 struct MeshData {
-      VertexLayout _layout; // initialize
+      VertexLayout _layout; // initialize from ctor
       std::unique_ptr<char[]> _dataVertex_host; // initialize
       std::unique_ptr<char[]> _dataIndex_host; // initialize
+      uint64_t vertexNum; // initialize
+      uint64_t indexNum; // initialize
+      DXGI_FORMAT indexFormat; // initialize (maybe from byte stride)
 
       ComPtr<ID3D12Resource> uploadBufferVertex;
       ComPtr<ID3D12Resource> uploadBufferIndex;
@@ -24,9 +27,6 @@ struct MeshData {
       ComPtr<ID3D12Resource> indexBuffer = nullptr;
       D3D12_VERTEX_BUFFER_VIEW vbv;
       D3D12_INDEX_BUFFER_VIEW ibv;
-      uint64_t vertexNum; // initialize
-      uint64_t indexNum; // initialize
-      DXGI_FORMAT indexFormat; // initialize (maybe from byte stride)
 
       uint64_t byteLength() {
             uint64_t len = 0;
@@ -73,6 +73,7 @@ struct MeshData {
       MeshData(VertexLayout l, char* dataVertex, uint64_t numVertex, char* dataIndex, uint64_t numIndex) : _layout(l), _dataVertex_host(dataVertex),
             _dataIndex_host(dataIndex), vertexNum(numVertex), indexNum(numIndex), indexFormat(DXGI_FORMAT_R16_UINT) {}
       MeshData() : vertexNum(0), indexNum(0) {}
+      // move ctor because of unique_ptr members
       MeshData(MeshData&& m) : _layout(m._layout), _dataVertex_host(std::move(m._dataVertex_host)), _dataIndex_host(std::move(m._dataIndex_host)), vertexBuffer(m.vertexBuffer),
             indexBuffer(m.indexBuffer), vbv(m.vbv), ibv(m.ibv), vertexNum(m.vertexNum), indexNum(m.indexNum), indexFormat(m.indexFormat) {}
 };

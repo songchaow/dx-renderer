@@ -36,7 +36,7 @@ ID3D12Resource*              g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
 D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
 ID3D12RootSignature* g_defaultRootSignature = NULL;
 
-void CreateRenderTarget()
+void CreateRTVfromSwapChain()
 {
       for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
       {
@@ -209,7 +209,7 @@ bool CreateDeviceD3D(HWND hWnd)
             g_hSwapChainWaitableObject = g_pSwapChain->GetFrameLatencyWaitableObject();
       }
 
-      CreateRenderTarget();
+      CreateRTVfromSwapChain();
       return true;
 }
 

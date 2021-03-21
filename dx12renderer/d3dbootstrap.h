@@ -38,7 +38,7 @@ extern UINT                         g_frameIndex;
 
 
 
-void CreateRenderTarget();
+void CreateRTVfromSwapChain();
 void WaitForLastSubmittedFrame();
 void CleanupRenderTarget();
 bool CreateDeviceD3D(HWND hWnd);

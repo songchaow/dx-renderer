@@ -206,12 +206,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       // begin record initialization commands
       g_pd3dCommandList->Reset(g_frameContext[0].CommandAllocator, nullptr);
 
-      // constant buffer of primitives
+      // constant buffer of primitives (no commands)
       Primitive3D::initConstBuffer();
-      // Primitives
-      Scene::scene.objs3D.push_back(make_example_primitive());
 
-      // Shader
+      // Shader (no commands)
       ShaderStore::shaderStore.init();
 
       
@@ -236,6 +234,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
             DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
             g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
             g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+
+      // Load
+      // Primitives 
+      Scene::scene.objs3D.push_back(make_example_primitive());
 
       return TRUE;
 }

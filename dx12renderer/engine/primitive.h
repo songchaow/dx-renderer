@@ -84,7 +84,7 @@ public:
       
 private:
       // pIdx
-      static uint32_t curr_max_pIdx;
+      static uint32_t curr_max_pIdx; // used when creating primitives
       uint32_t pIdx;
       // mesh
       MeshData mesh;

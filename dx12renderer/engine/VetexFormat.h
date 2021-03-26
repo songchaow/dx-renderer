@@ -10,6 +10,6 @@ enum ElementFormatName {
       NUM_ELEMENT_FORMAT
 };
 
-typedef std::vector<ElementFormatName> VertexLayout;
+typedef std::vector<ElementFormatName> VertexLayoutDesc;
 
-void CreateD3DInputLayoutDesc(VertexLayout l, std::vector<D3D12_INPUT_ELEMENT_DESC>& element_descs, D3D12_INPUT_LAYOUT_DESC& desc);
+void CreateD3DInputLayoutDesc(VertexLayoutDesc l, std::vector<D3D12_INPUT_ELEMENT_DESC>& element_descs, D3D12_INPUT_LAYOUT_DESC& desc);

@@ -13,7 +13,7 @@ using ComPtr = Microsoft::WRL::ComPtr<T>;
 extern uint32_t element_byte_Length[NUM_ELEMENT_FORMAT];
 
 struct MeshData {
-      VertexLayout _layout; // initialize from ctor
+      VertexLayoutDesc _layout; // initialize from ctor
       std::unique_ptr<char[]> _dataVertex_host; // initialize
       std::unique_ptr<char[]> _dataIndex_host; // initialize
       uint64_t vertexNum; // initialize
@@ -70,7 +70,7 @@ struct MeshData {
             // g_pd3dCommandList->IASetIndexBuffer(&ibv);
       }
 
-      MeshData(VertexLayout l, char* dataVertex, uint64_t numVertex, char* dataIndex, uint64_t numIndex) : _layout(l), _dataVertex_host(dataVertex),
+      MeshData(VertexLayoutDesc l, char* dataVertex, uint64_t numVertex, char* dataIndex, uint64_t numIndex) : _layout(l), _dataVertex_host(dataVertex),
             _dataIndex_host(dataIndex), vertexNum(numVertex), indexNum(numIndex), indexFormat(DXGI_FORMAT_R16_UINT) {}
       MeshData() : vertexNum(0), indexNum(0) {}
       // move ctor because of unique_ptr members
@@ -93,6 +93,7 @@ private:
       DataPerPrimitive3D constant_buffer_cpu;
       bool constant_buffer_dirty = false;
       //static UploadBuffer<DataPerPrimitive3D> constant_buffer;
+      D3D12_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 public:
       // init the continuous constant buffer as a whole , for all primitives
       static void initConstBuffer() {
@@ -100,7 +101,9 @@ public:
             for (uint32_t i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
                   g_frameContext[i].constant_buffer_primitive3d.Create(g_pd3dDevice, NUM_MAX_PRIMITIVE_3D);
       }
+      // Create CBV, load const buffer data and mesh data to GPU
       void init() {
+            // const buffer per obj
             uint32_t perObjectByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(DataPerPrimitive3D));
             uint32_t offset = pIdx * perObjectByteSize;
             for (uint32_t idx = 0; idx < NUM_FRAMES_IN_FLIGHT; idx++) {
@@ -137,7 +140,7 @@ public:
             hdl.ptr += constBufferViewSize * (pIdx + (SIZE_T)CBVLocation::PER_OBJECT) + NUM_MAX_PRIMITIVE_3D * constBufferViewSize * g_frameIndex;
             return hdl;
       }
-      D3D12_GPU_DESCRIPTOR_HANDLE ConstantBufferViewGPU() const {
+      D3D12_GPU_DESCRIPTOR_HANDLE ConstantBufferViewCurrFrameGPU() const {
             SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             D3D12_GPU_DESCRIPTOR_HANDLE hdl = g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart();
             hdl.ptr += constBufferViewSize * (pIdx + (SIZE_T)CBVLocation::PER_OBJECT) + NUM_MAX_PRIMITIVE_3D * constBufferViewSize * g_frameIndex;
@@ -151,6 +154,9 @@ public:
             g_frameContext[g_frameIndex].constant_buffer_primitive3d.CopyData(pIdx, constant_buffer_cpu);
 
       }
+      D3D12_VERTEX_BUFFER_VIEW* VertexBufferView() { return &mesh.vbv; }
+      D3D12_INDEX_BUFFER_VIEW* IndexBufferView() { return &mesh.ibv; }
+      auto Topology() { return topology; }
 
 public:
       Primitive3D(MeshData&& m) : pIdx(curr_max_pIdx++), mesh(std::move(m)) {

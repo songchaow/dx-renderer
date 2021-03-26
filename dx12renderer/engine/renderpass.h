@@ -48,7 +48,7 @@ struct Resource {
 class RenderPass {
       std::string name;
       Shader* shader;
-      VertexLayout input_layout;
+      VertexLayoutDesc input_layout;
       D3D12_ROOT_SIGNATURE_DESC root_signature_desc;
       ComPtr< ID3D12RootSignature> root_signature;
       //ID3D12RootSignature* root_signature; // owned
@@ -67,22 +67,16 @@ class RenderPass {
       D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc;
       ComPtr<ID3D12PipelineState> pso;
       // render targets
-      std::vector<Resource*> render_targets;
+      std::vector<DXGI_FORMAT> rt_formats;
+      DXGI_FORMAT ds_format = DXGI_FORMAT_UNKNOWN;
+      std::vector<Resource*> render_targets; // not necessarily valid
       Resource* depth_stencil = nullptr;
-
-
-      void fillShaderintoPSO() {
-            if (!shader->isCompiled()) {
-                  shader->compileAndLink();
-                  shader->setVSByteCode(pso_desc.VS);
-                  shader->setGSByteCode(pso_desc.GS);
-                  shader->setPSByteCode(pso_desc.PS);
-            }
-      }
 
 
       void fillShaderintoPSODesc() {
             assert(shader!=nullptr);
+            if (!shader->isCompiled())
+                  shader->compileAndLink();
             auto bin = shader->GetBinary();
             pso_desc.VS = {
                   bin.binary_vs->GetBufferPointer(),
@@ -98,35 +92,15 @@ class RenderPass {
             };
       }
       void CreateRootSignature();
-      virtual void CreatePSO() {
-            // set root signature
-            pso_desc.pRootSignature = root_signature.Get();
-            // set input layout from input_layout
-            CreateD3DInputLayoutDesc(input_layout, input_layout_storage, pso_desc.InputLayout);
-            // set shader
-            fillShaderintoPSODesc();
-            
-            // set raster, depth/stencil, blend state
-            pso_desc.RasterizerState = rasterizer_state;
-            pso_desc.DepthStencilState = depth_stencil_state;
-            pso_desc.BlendState = blend_state;
-            pso_desc.SampleMask = sample_mask;
-            pso_desc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
-            pso_desc.PrimitiveTopologyType = primitive_topology_type;
-
-            // set num render targets
-            pso_desc.NumRenderTargets = render_targets.size();
-            for (uint32_t i = 0; i < render_targets.size(); i++) {
-                  pso_desc.RTVFormats[i] = render_targets[i]->desc.Format;
-            }
-            if (depth_stencil)
-                  pso_desc.DSVFormat = depth_stencil->desc.Format;
-            else
-                  pso_desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+      virtual void CreatePSO();
+      void init() {
+            CreateRootSignature();
+            CreatePSO();
       }
       virtual void draw();
 
 public:
-      RenderPass(std::string name, Shader* s, VertexLayout vl, D3D12_ROOT_SIGNATURE_DESC rootsig_desc) : name(name), shader(s),
-            input_layout(vl), root_signature_desc(rootsig_desc) {}
+      RenderPass(std::string name, Shader* s, VertexLayoutDesc vl, D3D12_ROOT_SIGNATURE_DESC rootsig_desc,
+            std::vector<DXGI_FORMAT> rt_formats, DXGI_FORMAT ds_format) : name(name), shader(s),
+            input_layout(vl), root_signature_desc(rootsig_desc), rt_formats(rt_formats), ds_format(ds_format) {}
 };

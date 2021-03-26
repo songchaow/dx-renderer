@@ -100,14 +100,16 @@ bool CreatePipelineD3D() {
       //g_pd3dCommandList->SetGraphicsRootSignature(g_defaultRootSignature); // set from render pass when used for the first time
       g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
 
+      // future: read from a list of RenderPass, and create necessary resources
+      // now, just create manually
+
+
 #if 0
       CD3DX12_GPU_DESCRIPTOR_HANDLE cbv(g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
       SIZE_T size = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
       cbv.Offset(1, size);
       g_pd3dCommandList->SetGraphicsRootDescriptorTable(0, cbv);
 #endif
-
-      // create PSO now doned in render pass.
 
       return false;
 }

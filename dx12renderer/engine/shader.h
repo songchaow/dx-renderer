@@ -17,7 +17,7 @@ struct ShaderPath {
 
 struct ShaderConfig {
       ShaderPath path;
-      VertexLayout input_layout;
+      VertexLayoutDesc input_layout;
 
 };
 

@@ -122,6 +122,54 @@ void RenderFrame() {
 
 }
 
+bool d3dbootstrap(HWND hwindow) {
+      // Initialize D3D
+      if (!CreateDeviceD3D(hwindow))
+      {
+            CleanupDeviceD3D();
+            ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+            return false;
+      }
+
+
+      // begin record initialization commands
+      g_pd3dCommandList->Reset(g_frameContext[0].CommandAllocator, nullptr);
+
+      // constant buffer of primitives (no commands)
+      Primitive3D::initConstBuffer();
+
+      // Shader (no commands)
+      ShaderStore::shaderStore.init();
+
+
+      // Pipeline
+      CreatePipelineD3D();
+
+      // Load primitives (loading contains commands)
+      Scene::scene.objs3D.push_back(make_example_primitive());
+
+      // execute and initialize
+      g_pd3dCommandList->Close();
+      ID3D12CommandList* cmdLists = { g_pd3dCommandList };
+      g_pd3dCommandQueue->ExecuteCommandLists(1, &cmdLists);
+
+      // Setup Dear ImGui context
+      IMGUI_CHECKVERSION();
+      ImGui::CreateContext();
+      ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+      ImGui::StyleColorsDark();
+
+      // Setup Platform/Renderer bindings
+      
+      ImGui_ImplWin32_Init(hwindow);
+      ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT,
+            DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
+            g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
+            g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+      
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -193,52 +241,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       }
       hWindow = hwnd;
 
-      // Initialize D3D
-      if (!CreateDeviceD3D(hwnd))
-      {
-            CleanupDeviceD3D();
-            ::UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
-            return 1;
-      }
-
-      ShowWindow(hwnd, nCmdShow);
-      UpdateWindow(hwnd);
-      // begin record initialization commands
-      g_pd3dCommandList->Reset(g_frameContext[0].CommandAllocator, nullptr);
-
-      // constant buffer of primitives (no commands)
-      Primitive3D::initConstBuffer();
-
-      // Shader (no commands)
-      ShaderStore::shaderStore.init();
+      d3dbootstrap(hWindow);
 
       
-      // Pipeline
-      CreatePipelineD3D();
-
-      // execute and initialize
-      g_pd3dCommandList->Close();
-      ID3D12CommandList* cmdLists = { g_pd3dCommandList };
-      g_pd3dCommandQueue->ExecuteCommandLists(1, &cmdLists);
-
-      // Setup Dear ImGui context
-      IMGUI_CHECKVERSION();
-      ImGui::CreateContext();
-      ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-      ImGui::StyleColorsDark();
-
-      // Setup Platform/Renderer bindings
-      ImGui_ImplWin32_Init(hwnd);
-      ImGui_ImplDX12_Init(g_pd3dDevice, NUM_FRAMES_IN_FLIGHT,
-            DXGI_FORMAT_R8G8B8A8_UNORM, g_pd3dSrvDescHeap,
-            g_pd3dSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
-            g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
-
-      // Load
-      // Primitives 
-      Scene::scene.objs3D.push_back(make_example_primitive());
-
+      
+      ShowWindow(hwnd, nCmdShow);
+      UpdateWindow(hwnd);
       return TRUE;
 }
 

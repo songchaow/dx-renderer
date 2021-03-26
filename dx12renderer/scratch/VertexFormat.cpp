@@ -26,7 +26,7 @@ D3D12_INPUT_ELEMENT_DESC vertex_format_descs[NUM_ELEMENT_FORMAT] = {
       {"TANGENT",       0,                DXGI_FORMAT_R32G32B32A32_FLOAT,     0,          0,          D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,  0}
 };
 
-VertexLayout pbrVertexLayout = { POSITION3F32, TEXCOORD, NORMAL3F32, TANGENT3F32 };
+VertexLayoutDesc pbrVertexLayout = { POSITION3F32, TEXCOORD, NORMAL3F32, TANGENT3F32 };
 
 MeshData make_example_vertexdata() {
       constexpr uint8_t vertexNum = 8;
@@ -64,7 +64,7 @@ MeshData make_example_vertexdata() {
       };
       uint16_t* index_data_copy = new uint16_t[36];
       std::memcpy(index_data_copy, index_data, sizeof(uint16_t) * 36);
-      VertexLayout positionLayout = { POSITION3F32 };
+      VertexLayoutDesc positionLayout = { POSITION3F32 };
       MeshData ret(positionLayout, (char*)vertex_data_copy, sizeof(vertex_data), (char*)index_data_copy, sizeof(index_data));
       
       return ret;
@@ -76,8 +76,8 @@ Primitive3D* make_example_primitive() {
       return p3D;
 }
 
-void CreateD3DInputLayoutDesc(VertexLayout l, std::vector<D3D12_INPUT_ELEMENT_DESC>& element_descs, D3D12_INPUT_LAYOUT_DESC& desc) {
-      element_descs.clear();
+void CreateD3DInputLayoutDesc(VertexLayoutDesc l, std::vector<D3D12_INPUT_ELEMENT_DESC>& d12_desc_data, D3D12_INPUT_LAYOUT_DESC& desc) {
+      d12_desc_data.clear();
       for (auto it = l.begin(); it < l.end(); it++) {
             // find previous elements of the same type, and determine semantic index
             uint16_t semanticIdx = 0;
@@ -88,10 +88,10 @@ void CreateD3DInputLayoutDesc(VertexLayout l, std::vector<D3D12_INPUT_ELEMENT_DE
                   if (strcmp(vertex_format_descs[*it_prev].SemanticName, vertex_format_descs[*it].SemanticName) == 0) {
                         fill_value.SemanticIndex = vertex_format_descs[*it_prev].SemanticIndex + 1;
                   }
-            element_descs.push_back(fill_value);
+            d12_desc_data.push_back(fill_value);
       }
 
-      desc.pInputElementDescs = element_descs.data();
+      desc.pInputElementDescs = d12_desc_data.data();
       desc.NumElements = l.size();
 
 }

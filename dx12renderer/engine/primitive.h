@@ -110,6 +110,7 @@ public:
                   // update constant buffer on every frame
                   g_frameContext[g_frameIndex].constant_buffer_primitive3d.CopyData(pIdx, constant_buffer_cpu);
             }
+            // Now CBVs are directly placed in root signature
             #if 0
             // create CBV (there's one for each primitive3d) on each frame resource, located in a certain place in g_pd3dSrvDescHeap
             for (uint32_t idx = 0; idx < NUM_FRAMES_IN_FLIGHT; idx++) {

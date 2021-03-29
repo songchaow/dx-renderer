@@ -35,7 +35,8 @@ void RenderPass::draw()
 {
       // switch pso
       g_pd3dCommandList->SetPipelineState(pso.Get());
-      // later: update const buffer cbPerPass if changed
+      // later: update const buffer cbPerFrame if changed
+      //g_pd3dCommandList->SetGraphicsRootConstantBufferView(0, );
       for (auto* p : Scene::scene.objs3D) {
             // Input
             g_pd3dCommandList->IASetVertexBuffers(0, 1, p->VertexBufferView());

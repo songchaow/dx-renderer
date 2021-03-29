@@ -35,8 +35,7 @@
 #pragma once
 #endif
 
-typedef float Float;
-constexpr float Pi = 3.1415927;
+constexpr float Pi = 3.1415927f;
 
 #include <iterator>
 #include <glog/logging.h>
@@ -155,13 +154,13 @@ class Point3 {
     template <typename U>
     Point3<T> operator/(U f) const {
         CHECK_NE(f, 0);
-        Float inv = (Float)1 / f;
+        float inv = (float)1 / f;
         return Point3<T>(inv * x, inv * y, inv * z);
     }
     template <typename U>
     Point3<T> &operator/=(U f) {
         CHECK_NE(f, 0);
-        Float inv = (Float)1 / f;
+        float inv = (float)1 / f;
         x *= inv;
         y *= inv;
         z *= inv;
@@ -214,7 +213,7 @@ inline std::ostream &operator<<(std::ostream &os, const Point3<T> &v) {
 }
 
 template <>
-inline std::ostream &operator<<(std::ostream &os, const Point3<Float> &v) {
+inline std::ostream &operator<<(std::ostream &os, const Point3<float> &v) {
     os << "[ " << v.x << ", " << v.y << ", " << v.z << " ]";
     return os;
 }
@@ -280,10 +279,10 @@ class Point2 {
         DCHECK(!v.HasNaNs());
         return Point2<T>(x - v.x, y - v.y);
     }
-    Point2<T> operator-(const Float v) const {
+    Point2<T> operator-(const float v) const {
           return Point2<T>(x - v, y - v);
     }
-    Point2<T> operator+(const Float v) const {
+    Point2<T> operator+(const float v) const {
           return Point2<T>(x + v, y + v);
     }
     Point2<T> operator-() const { return Point2<T>(-x, -y); }
@@ -316,13 +315,13 @@ class Point2 {
     template <typename U>
     Point2<T> operator/(U f) const {
         CHECK_NE(f, 0);
-        Float inv = (Float)1 / f;
+        float inv = (float)1 / f;
         return Point2<T>(inv * x, inv * y);
     }
     template <typename U>
     Point2<T> &operator/=(U f) {
         CHECK_NE(f, 0);
-        Float inv = (Float)1 / f;
+        float inv = (float)1 / f;
         x *= inv;
         y *= inv;
         return *this;
@@ -360,14 +359,14 @@ inline std::ostream &operator<<(std::ostream &os, const Point2<T> &v) {
 }
 
 template <>
-inline std::ostream &operator<<(std::ostream &os, const Point2<Float> &v) {
+inline std::ostream &operator<<(std::ostream &os, const Point2<float> &v) {
     os << "[ " << v.x << ", " << v.y << " ]";
     return os;
 }
 
-typedef Point2<Float> Point2f;
+typedef Point2<float> Point2f;
 typedef Point2<int> Point2i;
-typedef Point3<Float> Point3f;
+typedef Point3<float> Point3f;
 typedef Point3<int> Point3i;
 
 // Normal Declarations
@@ -418,21 +417,21 @@ class Normal3 {
     template <typename U>
     Normal3<T> operator/(U f) const {
         CHECK_NE(f, 0);
-        Float inv = (Float)1 / f;
+        float inv = (float)1 / f;
         return Normal3<T>(x * inv, y * inv, z * inv);
     }
 
     template <typename U>
     Normal3<T> &operator/=(U f) {
         CHECK_NE(f, 0);
-        Float inv = (Float)1 / f;
+        float inv = (float)1 / f;
         x *= inv;
         y *= inv;
         z *= inv;
         return *this;
     }
-    Float LengthSquared() const { return x * x + y * y + z * z; }
-    Float Length() const { return std::sqrt(LengthSquared()); }
+    float LengthSquared() const { return x * x + y * y + z * z; }
+    float Length() const { return std::sqrt(LengthSquared()); }
 
 #ifndef NDEBUG
     Normal3<T>(const Normal3<T> &n) {
@@ -500,12 +499,12 @@ inline std::ostream &operator<<(std::ostream &os, const Normal3<T> &v) {
 }
 
 template <>
-inline std::ostream &operator<<(std::ostream &os, const Normal3<Float> &v) {
+inline std::ostream &operator<<(std::ostream &os, const Normal3<float> &v) {
     os << "[ " << v.x << ", " << v.y << ", " << v.z << " ]";
     return os;
 }
 
-typedef Normal3<Float> Normal3f;
+typedef Normal3<float> Normal3f;
 
 // Vector Declarations
 template <typename T>
@@ -572,14 +571,14 @@ class Vector2 {
     template <typename U>
     Vector2<T> operator/(U f) const {
         CHECK_NE(f, 0);
-        Float inv = (Float)1 / f;
+        float inv = (float)1 / f;
         return Vector2<T>(x * inv, y * inv);
     }
 
     template <typename U>
     Vector2<T> &operator/=(U f) {
         CHECK_NE(f, 0);
-        Float inv = (Float)1 / f;
+        float inv = (float)1 / f;
         x *= inv;
         y *= inv;
         return *this;
@@ -596,8 +595,8 @@ class Vector2 {
         if (i == 0) return x;
         return y;
     }
-    Float LengthSquared() const { return x * x + y * y; }
-    Float Length() const { return std::sqrt(LengthSquared()); }
+    float LengthSquared() const { return x * x + y * y; }
+    float Length() const { return std::sqrt(LengthSquared()); }
 
     // Vector2 Public Data
     T x, y;
@@ -610,7 +609,7 @@ inline std::ostream &operator<<(std::ostream &os, const Vector2<T> &v) {
 }
 
 template <>
-inline std::ostream &operator<<(std::ostream &os, const Vector2<Float> &v) {
+inline std::ostream &operator<<(std::ostream &os, const Vector2<float> &v) {
     os << "[ " << v.x << ", " << v.y << " ]";
     return os;
 }
@@ -702,22 +701,22 @@ class Vector3 {
     template <typename U>
     Vector3<T> operator/(U f) const {
         CHECK_NE(f, 0);
-        Float inv = (Float)1 / f;
+        float inv = (float)1 / f;
         return Vector3<T>(x * inv, y * inv, z * inv);
     }
 
     template <typename U>
     Vector3<T> &operator/=(U f) {
         CHECK_NE(f, 0);
-        Float inv = (Float)1 / f;
+        float inv = (float)1 / f;
         x *= inv;
         y *= inv;
         z *= inv;
         return *this;
     }
     Vector3<T> operator-() const { return Vector3<T>(-x, -y, -z); }
-    Float LengthSquared() const { return x * x + y * y + z * z; }
-    Float Length() const { return std::sqrt(LengthSquared()); }
+    float LengthSquared() const { return x * x + y * y + z * z; }
+    float Length() const { return std::sqrt(LengthSquared()); }
     explicit Vector3(const Normal3<T> &n);
 
     // Vector3 Public Data
@@ -731,14 +730,14 @@ inline std::ostream &operator<<(std::ostream &os, const Vector3<T> &v) {
 }
 
 template <>
-inline std::ostream &operator<<(std::ostream &os, const Vector3<Float> &v) {
+inline std::ostream &operator<<(std::ostream &os, const Vector3<float> &v) {
     os << "[ " << v.x << ", " << v.y << ", " << v.z << " ]";
     return os;
 }
 
-typedef Vector2<Float> Vector2f;
+typedef Vector2<float> Vector2f;
 typedef Vector2<int> Vector2i;
-typedef Vector3<Float> Vector3f;
+typedef Vector3<float> Vector3f;
 typedef Vector3<int> Vector3i;
 
 // Geometry Inline Functions
@@ -874,13 +873,13 @@ inline Vector2<T> operator*(U f, const Vector2<T> &v) {
     return v * f;
 }
 template <typename T>
-inline Float Dot(const Vector2<T> &v1, const Vector2<T> &v2) {
+inline float Dot(const Vector2<T> &v1, const Vector2<T> &v2) {
     DCHECK(!v1.HasNaNs() && !v2.HasNaNs());
     return v1.x * v2.x + v1.y * v2.y;
 }
 
 template <typename T>
-inline Float AbsDot(const Vector2<T> &v1, const Vector2<T> &v2) {
+inline float AbsDot(const Vector2<T> &v1, const Vector2<T> &v2) {
     DCHECK(!v1.HasNaNs() && !v2.HasNaNs());
     return std::abs(Dot(v1, v2));
 }
@@ -895,12 +894,12 @@ Vector2<T> Abs(const Vector2<T> &v) {
 }
 
 template <typename T>
-inline Float Distance(const Point3<T> &p1, const Point3<T> &p2) {
+inline float Distance(const Point3<T> &p1, const Point3<T> &p2) {
     return (p1 - p2).Length();
 }
 
 template <typename T>
-inline Float DistanceSquared(const Point3<T> &p1, const Point3<T> &p2) {
+inline float DistanceSquared(const Point3<T> &p1, const Point3<T> &p2) {
     return (p1 - p2).LengthSquared();
 }
 
@@ -911,7 +910,7 @@ inline Point3<T> operator*(U f, const Point3<T> &p) {
 }
 
 template <typename T>
-Point3<T> Lerp(Float t, const Point3<T> &p0, const Point3<T> &p1) {
+Point3<T> Lerp(float t, const Point3<T> &p0, const Point3<T> &p1) {
     return (1 - t) * p0 + t * p1;
 }
 
@@ -943,12 +942,12 @@ Point3<T> Abs(const Point3<T> &p) {
 }
 
 template <typename T>
-inline Float Distance(const Point2<T> &p1, const Point2<T> &p2) {
+inline float Distance(const Point2<T> &p1, const Point2<T> &p2) {
     return (p1 - p2).Length();
 }
 
 template <typename T>
-inline Float DistanceSquared(const Point2<T> &p1, const Point2<T> &p2) {
+inline float DistanceSquared(const Point2<T> &p1, const Point2<T> &p2) {
     return (p1 - p2).LengthSquared();
 }
 
@@ -969,7 +968,7 @@ Point2<T> Ceil(const Point2<T> &p) {
 }
 
 template <typename T>
-Point2<T> Lerp(Float t, const Point2<T> &v0, const Point2<T> &v1) {
+Point2<T> Lerp(float t, const Point2<T> &v0, const Point2<T> &v1) {
     return (1 - t) * v0 + t * v1;
 }
 
@@ -1065,28 +1064,28 @@ Normal3<T> Abs(const Normal3<T> &v) {
     return Normal3<T>(std::abs(v.x), std::abs(v.y), std::abs(v.z));
 }
 
-inline Vector3f SphericalDirection(Float sinTheta, Float cosTheta, Float phi) {
+inline Vector3f SphericalDirection(float sinTheta, float cosTheta, float phi) {
     return Vector3f(sinTheta * std::cos(phi), sinTheta * std::sin(phi),
                     cosTheta);
 }
 
-inline Vector3f SphericalDirection(Float sinTheta, Float cosTheta, Float phi,
+inline Vector3f SphericalDirection(float sinTheta, float cosTheta, float phi,
                                    const Vector3f &x, const Vector3f &y,
                                    const Vector3f &z) {
     return sinTheta * std::cos(phi) * x + sinTheta * std::sin(phi) * y +
            cosTheta * z;
 }
 
-inline Float CaconicalSphericalTheta(const Vector3f &v) {
+inline float CaconicalSphericalTheta(const Vector3f &v) {
       return std::acos(Clamp(v.z, -1, 1));
 }
 
-inline Float SphericalTheta(const Vector3f &v) {
+inline float SphericalTheta(const Vector3f &v) {
     return std::acos(Clamp(v.y, -1, 1));
 }
 
-inline Float CaconicalSphericalPhi(const Vector3f &v) {
-    Float p = std::atan2(v.y, v.x);
+inline float CaconicalSphericalPhi(const Vector3f &v) {
+    float p = std::atan2(v.y, v.x);
     return (p < 0) ? (p + 2 * Pi) : p;
 }
 
@@ -1097,8 +1096,8 @@ inline Float CaconicalSphericalPhi(const Vector3f &v) {
       x>0, z<0: res += 2pi
       final p is in [0,2Pi]
 */
-inline Float SphericalPhi(const Vector3f &v) {
-      Float p = std::atan2(v.z, v.x);
+inline float SphericalPhi(const Vector3f &v) {
+      float p = std::atan2(v.z, v.x);
       //if (v.x < 0)
       //      ;// p += Pi;
       //if (v.x > 0 && v.z < 0)
@@ -1117,8 +1116,8 @@ struct AABB {
       Point3f pMax;
       Point3f pMin;
       AABB() {
-            Float max = std::numeric_limits<Float>::max();
-            Float min = std::numeric_limits<Float>::lowest();
+            float max = std::numeric_limits<float>::max();
+            float min = std::numeric_limits<float>::lowest();
             pMin = { max, max, max };
             pMax = { min,min,min };
       }
@@ -1155,12 +1154,12 @@ struct AABB {
 
 struct SphereBound {
       Point3f center;
-      Float radius;
+      float radius;
 };
 
 struct CamOrientedEllipse {
-      Float axisX; // long
-      Float axisY; // short
+      float axisX; // long
+      float axisY; // short
       Point2f center;
       bool inRange(const Point2f& xzCam) const;
       enum Location {
@@ -1168,6 +1167,6 @@ struct CamOrientedEllipse {
             BACK
       };
       bool inRange(const Point2f& xzCam, Location& loc) const;
-      Float FrontZ() const { return center.y + axisY; }
-      Float BackZ() const { return center.y - axisY; }
+      float FrontZ() const { return center.y + axisY; }
+      float BackZ() const { return center.y - axisY; }
 };

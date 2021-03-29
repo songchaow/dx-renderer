@@ -4,6 +4,7 @@
 #include "d3dx12.h"
 
 #include "engine/primitive.h"
+#include "engine/renderpass.h"
 
 #ifdef _DEBUG
 #define DX12_ENABLE_DEBUG_LAYER
@@ -102,6 +103,7 @@ bool CreatePipelineD3D() {
 
       // future: read from a list of RenderPass, and create necessary resources
       // now, just create manually
+      RenderPass simpleRP = CreateSimpleRenderPass();
 
 
 #if 0
@@ -150,7 +152,7 @@ bool CreateDeviceD3D(HWND hWnd)
       {
             D3D12_DESCRIPTOR_HEAP_DESC desc = {};
             desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-            // the first for imgui, the second for per frame, and others for constant buffer per object
+            // the first for imgui, the second for per frame, and one per object.(space for 3 CBVs in total)
             desc.NumDescriptors = UINT(CBVLocation::NUM_CBV); 
             desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
             if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)

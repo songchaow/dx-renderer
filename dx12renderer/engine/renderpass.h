@@ -104,3 +104,5 @@ public:
             std::vector<DXGI_FORMAT> rt_formats, DXGI_FORMAT ds_format) : name(name), shader(s),
             input_layout(vl), root_signature_desc(rootsig_desc), rt_formats(rt_formats), ds_format(ds_format) {}
 };
+
+RenderPass CreateSimpleRenderPass();

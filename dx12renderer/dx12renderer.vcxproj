@@ -151,6 +151,7 @@
   <ItemGroup>
     <ClInclude Include="common\camera.h" />
     <ClInclude Include="common\geometry.h" />
+    <ClInclude Include="common\transform.h" />
     <ClInclude Include="d3dbootstrap.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="dx12renderer.h" />
@@ -175,6 +176,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common\geometry.cpp" />
+    <ClCompile Include="common\transform.cpp" />
     <ClCompile Include="d3dbootstrap.cpp" />
     <ClCompile Include="dx12renderer.cpp" />
     <ClCompile Include="engine\primitive.cpp" />

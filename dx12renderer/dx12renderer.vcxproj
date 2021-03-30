@@ -175,6 +175,7 @@
     <ClInclude Include="utility\utility.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="common\camera.cpp" />
     <ClCompile Include="common\geometry.cpp" />
     <ClCompile Include="common\transform.cpp" />
     <ClCompile Include="d3dbootstrap.cpp" />

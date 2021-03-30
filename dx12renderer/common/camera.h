@@ -101,7 +101,8 @@ struct Frustum {
             Far(length), type(Orthogonal) {}
       Matrix4 cam2ndc_Perspective() const;
       Matrix4 cam2ndc_Orthogonal() const;
-      static void randomShift_Perspective(Matrix4& cam2ndc);
+      Matrix4 cam2ndc() const { return type == Projective ? cam2ndc_Perspective() : cam2ndc_Orthogonal(); }
+      
 };
 
 struct View {
@@ -113,11 +114,11 @@ struct View {
 };
 
 class Camera {
-    CameraState posAndOrientation;
-    
+      CameraState posAndOrientation;
+      Frustum frustum;
 
 public:
       Matrix4 world2cam() const { return posAndOrientation.world2cam(); }
       Matrix4 cam2world() const { return posAndOrientation.cam2world(); }
-
+      Matrix4 cam2ndc() const { return frustum.cam2ndc(); }
 };

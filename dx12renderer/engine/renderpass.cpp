@@ -1,6 +1,7 @@
 #include "engine/renderpass.h"
 #include "d3dbootstrap.h"
 #include "engine/scene.h"
+#include "common/camera.h"
 
 D3D12_GRAPHICS_PIPELINE_STATE_DESC basic_pso_desc = {
       nullptr,
@@ -36,6 +37,7 @@ void RenderPass::draw()
       // switch pso
       g_pd3dCommandList->SetPipelineState(pso.Get());
       // later: update const buffer cbPerFrame if changed
+      Matrix4 world2cam = g_camera.world2cam();
       //g_pd3dCommandList->SetGraphicsRootConstantBufferView(0, );
       for (auto* p : Scene::scene.objs3D) {
             // Input

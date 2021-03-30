@@ -9,6 +9,7 @@
 #include "ext/imgui/imgui_impl_dx12.h"
 #include "engine/scene.h"
 #include "engine/shader.h"
+//#include "common/camera.h"
 
 #define MAX_LOADSTRING 100
 

@@ -83,7 +83,7 @@ struct Frustum {
             Projective, Orthogonal
       };
       FrustumType type;
-      float near;
+      float Near;
       float Far;
       // Orthogonal
       float width;
@@ -92,12 +92,12 @@ struct Frustum {
       float aspectRatio;
       float fov_Horizontal;
       // default Prospective ctor
-      Frustum(float aspectRatio) : near(0.1f), Far(200.f), aspectRatio(aspectRatio),
+      Frustum(float aspectRatio) : Near(0.1f), Far(200.f), aspectRatio(aspectRatio),
             fov_Horizontal(90.f * Pi / 180), type(Projective) {}
       /*Frustum(float aspectRatio) : near(1.f), Far(1500.f), aspectRatio(aspectRatio),
             fov_Horizontal(90.f * Pi / 180), type(Projective) {}*/
       Frustum() : Frustum(1.6f) {}
-      Frustum(float width, float height, float length) : width(width), height(height), near(0.f),
+      Frustum(float width, float height, float length) : width(width), height(height), Near(0.f),
             Far(length), type(Orthogonal) {}
       Matrix4 cam2ndc_Perspective() const;
       Matrix4 cam2ndc_Orthogonal() const;
@@ -122,3 +122,5 @@ public:
       Matrix4 cam2world() const { return posAndOrientation.cam2world(); }
       Matrix4 cam2ndc() const { return frustum.cam2ndc(); }
 };
+
+extern Camera g_camera;

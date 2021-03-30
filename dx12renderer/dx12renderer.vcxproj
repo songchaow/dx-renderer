@@ -179,7 +179,7 @@
     <ClCompile Include="common\geometry.cpp" />
     <ClCompile Include="common\transform.cpp" />
     <ClCompile Include="d3dbootstrap.cpp" />
-    <ClCompile Include="dx12renderer.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="engine\primitive.cpp" />
     <ClCompile Include="engine\renderpass.cpp" />
     <ClCompile Include="engine\scene.cpp" />

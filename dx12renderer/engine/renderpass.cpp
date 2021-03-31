@@ -15,13 +15,21 @@ D3D12_GRAPHICS_PIPELINE_STATE_DESC basic_pso_desc = {
 };
 
 void RenderPass::build_cbuffer_data_perpass() {
-      cbuffer_cpu_perframe._world2cam = g_camera.world2cam();
-      cbuffer_cpu_perframe._cam2ndc = g_camera.cam2ndc();
+      DataPerPass val;
+      val._world2cam = g_camera.world2cam();
+      val._cam2ndc = g_camera.cam2ndc();
+      cbuffer.update_cpu_buffer_single(&val);
+      cbuffer.updateGPUAll(0);
 }
 
 void RenderPass::update_cbuffer_data_perpass() {
-      if(g_camera.world2cam_dirty())
-            cbuffer_cpu_perframe._world2cam = g_camera.world2cam();
+      if (g_camera.world2cam_dirty()) {
+            DataPerPass val;
+            val._world2cam = g_camera.world2cam();
+            val._cam2ndc = g_camera.cam2ndc();
+            cbuffer.update_cpu_buffer_single(&val);
+            cbuffer.updateGPUCurrFrame(0);
+      }
 }
 
 void RenderPass::CreateRootSignature() {
@@ -46,12 +54,8 @@ void RenderPass::draw()
 {
       // switch pso
       g_pd3dCommandList->SetPipelineState(pso.Get());
-      // update const buffer cbPerFrame if changed
+      // update const buffer if changed
       update_cbuffer_data_perpass();
-      if (g_camera.world2cam_dirty()) {
-            Matrix4 world2cam = g_camera.world2cam();
-            g_frameContext[g_frameIndex].cbuffer_per_pass.CopyData(0, );
-      }
       //g_pd3dCommandList->SetGraphicsRootConstantBufferView(0, );
       for (auto* p : Scene::scene.objs3D) {
             // Input

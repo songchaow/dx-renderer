@@ -2,6 +2,8 @@
 #include "engine/shader.h"
 #include <string>
 #include "common/geometry.h"
+#include "utility/CBuffer.h"
+#include "d3dbootstrap.h"
 
 struct Resource {
       UINT id;
@@ -72,8 +74,8 @@ class RenderPass {
       std::vector<Resource*> render_targets; // not necessarily valid
       Resource* depth_stencil = nullptr;
 
-      // cbuffer cpu
-      DataPerPass cbuffer_cpu_perframe;
+      // cbuffer
+      CBuffer<DataPerPass> cbuffer;
 
       void fillShaderintoPSODesc() {
             assert(shader!=nullptr);
@@ -95,7 +97,10 @@ class RenderPass {
       }
       void CreateRootSignature();
       virtual void CreatePSO();
+      // Called when initializing
+      // Builds cbuffer data content, stores in host memory and uploads to GPU cbuffer
       void build_cbuffer_data_perpass();
+      // Called per frame
       void update_cbuffer_data_perpass();
       void init() {
             build_cbuffer_data_perpass();
@@ -105,9 +110,10 @@ class RenderPass {
       virtual void draw();
 
 public:
+      // d3dDevice must be valid
       RenderPass(std::string name, Shader* s, VertexLayoutDesc vl, D3D12_ROOT_SIGNATURE_DESC rootsig_desc,
-            std::vector<DXGI_FORMAT> rt_formats, DXGI_FORMAT ds_format) : name(name), shader(s),
-            input_layout(vl), root_signature_desc(rootsig_desc), rt_formats(rt_formats), ds_format(ds_format) {}
+            std::vector<DXGI_FORMAT> rt_formats, DXGI_FORMAT ds_format) : name(name), shader(s), input_layout(vl),
+             root_signature_desc(rootsig_desc), rt_formats(rt_formats), ds_format(ds_format), cbuffer(g_pd3dDevice) {}
 };
 
 RenderPass CreateSimpleRenderPass();

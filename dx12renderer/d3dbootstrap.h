@@ -29,7 +29,7 @@ struct FrameContext
 {
       ID3D12CommandAllocator* CommandAllocator;
       // Each frame needs their own const buffers!
-      UploadBuffer<DataPerPass> cbuffer_per_pass;
+      //UploadBuffer<DataPerPass> cbuffer_per_pass; // Now we use CBuffer!
       UploadBuffer<DataPerPrimitive3D> constant_buffer_all_primitive3d;
       UINT64                  FenceValue;
 };

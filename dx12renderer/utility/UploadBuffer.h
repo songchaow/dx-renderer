@@ -1,7 +1,6 @@
 #pragma once
 #include "d3dx12.h"
 #include "utility.h"
-#include "d3dbootstrap.h"
 
 template<typename T>
 class UploadBuffer
@@ -40,7 +39,18 @@ public:
       }
 
       UploadBuffer(const UploadBuffer& rhs) = delete;
+      UploadBuffer(UploadBuffer&& rhs) {
+
+      }
       UploadBuffer& operator=(const UploadBuffer& rhs) = delete;
+      UploadBuffer& operator=(UploadBuffer&& rhs) {
+            mUploadBuffer = rhs.mUploadBuffer;
+            rhs.mUploadBuffer.Reset();
+
+            mMappedData = rhs.mMappedData;
+            mElementByteSize = rhs.mElementByteSize;
+            mIsConstantBuffer = rhs.mIsConstantBuffer;
+      }
       ~UploadBuffer()
       {
             if (mUploadBuffer != nullptr)
@@ -59,56 +69,10 @@ public:
             memcpy(&mMappedData[elementIndex * mElementByteSize], &data, sizeof(T));
       }
 
-private:
+protected:
       Microsoft::WRL::ComPtr<ID3D12Resource> mUploadBuffer;
       BYTE* mMappedData = nullptr;
 
       UINT mElementByteSize = 0;
       bool mIsConstantBuffer = false;
-};
-
-
-// Constant buffer
-template<typename T>
-class CBuffer {
-      std::vector<T> data_cpu;
-      std::vector<UploadBuffer<T>> cbuffers; // GPU cbuffers in each frame
-      int dirty_count = 0;
-public:
-      CBuffer(ID3D12Device* device, UINT elementCount, bool perFrame = true) {
-            if (perFrame) {
-                  for (int i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
-                        cbuffers.push_back(UploadBuffer<T>(device, elementCount, true));
-            }
-            else
-                  cbuffers.push_back(UploadBuffer<T>(device, elementCount, true));
-            cbuffers.shrink_to_fit();
-
-            data_cpu.resize(elementCount);
-            data_cpu.shrink_to_fit();
-      }
-      CBuffer(ID3D12Device* device, bool perFrame = true) : CBuffer(device, 1, perFrame) {}
-
-      void update_cpu_buffer(int eidx, T* data) {
-            data_cpu[eidx] = *data;
-            dirty_count = cbuffers.size();
-      }
-
-      void update_cpu_buffer_single(T* data) { update_cpu_buffer(0, data); }
-
-      void updateGPUAll(int eidx, T* data) {
-            for (auto &c : cbuffers) {
-                  c.CopyData(eidx, *data);
-            }
-            dirty_count = 0;
-      }
-      void updateGPUCurrFrame(int eidx, T* data) {
-            if (cbuffers.size() > 1) {
-                  cbuffers[g_frameIndex].CopyData(eidx, *data);
-            }
-            if (dirty_count > 0)
-                  --dirty_count;
-      }
-
-      bool dirty() const { return dirty_count > 0; }
 };

@@ -3,15 +3,34 @@
 #include <d3d12.h>
 #include <dxgi1_4.h>
 #include "utility/UploadBuffer.h"
+#include "common/transform.h"
 
 struct DataPerPrimitive3D {
-      DirectX::XMFLOAT4X4 obj2world;
+      union {
+            DirectX::XMFLOAT4X4 obj2world;
+            Matrix4 _obj2world;
+      };
+      DataPerPrimitive3D() : _obj2world() {}
+};
+
+struct DataPerPass {
+      union {
+            DirectX::XMFLOAT4X4 world2cam;
+            Matrix4 _world2cam;
+      };
+      union {
+            DirectX::XMFLOAT4X4 cam2ndc;
+            Matrix4 _cam2ndc;
+      };
+      DataPerPass() : _world2cam(), _cam2ndc() {}
 };
 
 struct FrameContext
 {
       ID3D12CommandAllocator* CommandAllocator;
-      UploadBuffer<DataPerPrimitive3D> constant_buffer_primitive3d;
+      // Each frame needs their own const buffers!
+      UploadBuffer<DataPerPass> cbuffer_per_pass;
+      UploadBuffer<DataPerPrimitive3D> constant_buffer_all_primitive3d;
       UINT64                  FenceValue;
 };
 

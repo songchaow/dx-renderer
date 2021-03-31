@@ -72,6 +72,8 @@ class RenderPass {
       std::vector<Resource*> render_targets; // not necessarily valid
       Resource* depth_stencil = nullptr;
 
+      // cbuffer cpu
+      DataPerPass cbuffer_cpu_perframe;
 
       void fillShaderintoPSODesc() {
             assert(shader!=nullptr);
@@ -93,7 +95,10 @@ class RenderPass {
       }
       void CreateRootSignature();
       virtual void CreatePSO();
+      void build_cbuffer_data_perpass();
+      void update_cbuffer_data_perpass();
       void init() {
+            build_cbuffer_data_perpass();
             CreateRootSignature();
             CreatePSO();
       }

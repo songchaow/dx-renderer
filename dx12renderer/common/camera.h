@@ -12,6 +12,9 @@ struct CameraState {
     Point3f pos;
     Vector3f viewDir;
     Vector3f Y;
+    
+    mutable Matrix4 _world2cam_cache;
+    mutable bool _world2cam_dirty = true;
 
     void renormalize(Vector3f& Xcam, Vector3f& Ycam, Vector3f& Zcam) const {
           Zcam = Normalize(-viewDir);
@@ -21,7 +24,7 @@ struct CameraState {
 
     // Returns a matrix4x4 in row-major order and used with W.x style
     // Both world space and cam space are right-hand spaces
-    Matrix4 world2cam() const {
+    Matrix4 _world2cam() const {
           /// Renoarmlize
           Vector3f Zcam = -viewDir;
           Vector3f Xcam = Cross(Y, -viewDir);
@@ -32,6 +35,15 @@ struct CameraState {
                 Zcam.x, Zcam.y, Zcam.z, Dot(Vector3f(pos), Zcam),
                 0, 0, 0, 1);
           return world2cam;
+    }
+
+    // The cached version
+    Matrix4 world2cam() const {
+          if (_world2cam_dirty) {
+                _world2cam_cache = _world2cam();
+                _world2cam_dirty = false;
+          }
+          return _world2cam_cache;
     }
 
     // Returns a row-major matrix4x4 and used with W.x style
@@ -48,17 +60,20 @@ struct CameraState {
     }
     void forward(float d) {
           pos += viewDir * d;
+          _world2cam_dirty = true;
     }
 
     // Moves the pos along the X axis
     void horizonMove(float d) {
           Vector3f R = Normalize(Cross(Y, -viewDir));
           pos += R * d;
+          _world2cam_dirty = true;
     }
 
     // Moves the pos along the Y axis
     void verticalMove(float d) {
           pos += Y * d;
+          _world2cam_dirty = true;
     }
 
     // Rotates the view vector
@@ -74,6 +89,7 @@ struct CameraState {
           viewDir = Normalize(viewDir);
           X = Cross(Vector3f(0, 1, 0), -viewDir);
           Y = Normalize(Cross(-viewDir, X));
+          _world2cam_dirty = true;
     }
 };
 
@@ -119,6 +135,7 @@ class Camera {
 
 public:
       Matrix4 world2cam() const { return posAndOrientation.world2cam(); }
+      bool world2cam_dirty() const { return posAndOrientation._world2cam_dirty; }
       Matrix4 cam2world() const { return posAndOrientation.cam2world(); }
       Matrix4 cam2ndc() const { return frustum.cam2ndc(); }
 };

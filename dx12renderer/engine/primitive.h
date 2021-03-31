@@ -78,6 +78,23 @@ struct MeshData {
             indexBuffer(m.indexBuffer), vbv(m.vbv), ibv(m.ibv), vertexNum(m.vertexNum), indexNum(m.indexNum), indexFormat(m.indexFormat) {}
 };
 
+struct Primitive3DState {
+      Point3f position;
+      Quaternion rotation;
+      Vector3f scale;
+      Matrix4 obj2world() const {
+            Matrix4 T = Scale(position.x, position.y, position.z);
+            Matrix4 R = rotation.toMatrix4();
+            Matrix4 S = Scale(scale.x, scale.y, scale.z);
+
+            // order: T.S.(rz.ry.rx).M
+            return T * S * R;
+      }
+      // default at (0,0,0)
+      Primitive3DState() : position(0.f, 0.f, 0.f), rotation((1, 0, 0), 0.f), scale(1.f, 1.f, 1.f) {}
+      Primitive3DState(Point3f p) : position(p), rotation((1, 0, 0), 0.f), scale(1.f, 1.f, 1.f) {}
+};
+
 class Primitive3D {
 public:
       static constexpr uint32_t NUM_MAX_PRIMITIVE_3D = 200;
@@ -86,38 +103,51 @@ private:
       // pIdx
       static uint32_t curr_max_pIdx; // used when creating primitives
       uint32_t pIdx;
-      // mesh
+      // mesh data
       MeshData mesh;
+
       // constant buffer content
-      
       DataPerPrimitive3D constant_buffer_cpu;
+      int num_dirty_cbuff = NUM_FRAMES_IN_FLIGHT;
       bool constant_buffer_dirty = false;
-      //static UploadBuffer<DataPerPrimitive3D> constant_buffer;
+
+      // Primitive attributes
+      Primitive3DState pos;
+      Matrix4 obj2world; //cached
+
+      // rendering params
       D3D12_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 public:
       // init the continuous constant buffer as a whole , for all primitives
       static void initConstBuffer() {
             // init for each frame resource
             for (uint32_t i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
-                  g_frameContext[i].constant_buffer_primitive3d.Create(g_pd3dDevice, NUM_MAX_PRIMITIVE_3D);
+                  g_frameContext[i].constant_buffer_all_primitive3d.Create(g_pd3dDevice, NUM_MAX_PRIMITIVE_3D);
       }
       // Create CBV, load const buffer data and mesh data to GPU
       void init() {
-            // const buffer per obj
+            pIdx = curr_max_pIdx++;
+            assert(pIdx <= NUM_MAX_PRIMITIVE_3D - 1);
+
+            // build cbuff data
+            update_cpu_cbuffer();
+            constant_buffer_dirty = false;
+
+            // create cbuff on GPU and copy
             uint32_t perObjectByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(DataPerPrimitive3D));
             uint32_t offset = pIdx * perObjectByteSize;
             for (uint32_t idx = 0; idx < NUM_FRAMES_IN_FLIGHT; idx++) {
                   // update constant buffer on every frame
-                  g_frameContext[g_frameIndex].constant_buffer_primitive3d.CopyData(pIdx, constant_buffer_cpu);
+                  g_frameContext[g_frameIndex].constant_buffer_all_primitive3d.CopyData(pIdx, constant_buffer_cpu);
             }
             // Now CBVs are directly placed in root signature
             #if 0
             // create CBV (there's one for each primitive3d) on each frame resource, located in a certain place in g_pd3dSrvDescHeap
             for (uint32_t idx = 0; idx < NUM_FRAMES_IN_FLIGHT; idx++) {
                   // update constant buffer on every frame
-                  g_frameContext[g_frameIndex].constant_buffer_primitive3d.CopyData(pIdx, constant_buffer_cpu);
+                  g_frameContext[g_frameIndex].constant_buffer_all_primitive3d.CopyData(pIdx, constant_buffer_cpu);
                   D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc;
-                  cbv_desc.BufferLocation = g_frameContext[g_frameIndex].constant_buffer_primitive3d.Resource()->GetGPUVirtualAddress();
+                  cbv_desc.BufferLocation = g_frameContext[g_frameIndex].constant_buffer_all_primitive3d.Resource()->GetGPUVirtualAddress();
                   cbv_desc.SizeInBytes = perObjectByteSize;
                   SIZE_T constBufferViewSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
                   D3D12_CPU_DESCRIPTOR_HANDLE hdl = ConstantBufferViewCurrFrame();
@@ -131,7 +161,7 @@ public:
       D3D12_GPU_VIRTUAL_ADDRESS ConstBufferGPUAddressCurrFrame() const {
             UINT64 perObjectByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(DataPerPrimitive3D));
             UINT64 offset = pIdx * perObjectByteSize;
-            D3D12_GPU_VIRTUAL_ADDRESS startAddr = g_frameContext[g_frameIndex].constant_buffer_primitive3d.Resource()->GetGPUVirtualAddress();
+            D3D12_GPU_VIRTUAL_ADDRESS startAddr = g_frameContext[g_frameIndex].constant_buffer_all_primitive3d.Resource()->GetGPUVirtualAddress();
             return startAddr + offset;
       }
       #if 0
@@ -151,8 +181,21 @@ public:
             return D3D12_CPU_DESCRIPTOR_HANDLE();
       }
       #endif
-      void updateGPUData() {
-            g_frameContext[g_frameIndex].constant_buffer_primitive3d.CopyData(pIdx, constant_buffer_cpu);
+
+      // Re-calculates cbuffer contents from Primitive states
+      void update_cpu_cbuffer() {
+            constant_buffer_cpu._obj2world = pos.obj2world();
+            constant_buffer_dirty = true;
+      }
+
+      // Updates cbuffer in current frame and reduce the dirty count
+      // Should be in `tick`
+      void update_gpu_cbuffer() {
+            if(!constant_buffer_dirty)
+                  return;
+            g_frameContext[g_frameIndex].constant_buffer_all_primitive3d.CopyData(pIdx, constant_buffer_cpu);
+            if(--num_dirty_cbuff == 0)
+                  constant_buffer_dirty = false;
 
       }
       D3D12_VERTEX_BUFFER_VIEW* VertexBufferView() { return &mesh.vbv; }
@@ -160,8 +203,13 @@ public:
       auto Topology() { return topology; }
 
 public:
-      Primitive3D(MeshData&& m) : pIdx(curr_max_pIdx++), mesh(std::move(m)) {
-            assert(pIdx <= NUM_MAX_PRIMITIVE_3D - 1);
+      Primitive3D(MeshData&& m) : mesh(std::move(m)) {
+            init();
+      }
+      Primitive3D(MeshData&& m, Point3f position) : mesh(std::move(m)), pos(position) {
+            init();
+      }
+      Primitive3D(MeshData&& m, Primitive3DState position) : mesh(std::move(m)), pos(position) {
             init();
       }
 };

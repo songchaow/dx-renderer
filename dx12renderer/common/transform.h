@@ -51,6 +51,10 @@ struct Matrix4 {
       static const Matrix4& Identity();
 };
 
+Matrix4 Translate(const Vector3f &delta);
+Matrix4 Translate(const float x, const float y, const float z);
+Matrix4 Scale(float x, float y, float z);
+
 struct Quaternion {
       // a + bi + cj + dk
       float a; // also s
@@ -68,7 +72,7 @@ struct Quaternion {
             c = sinT * spinAxis.y;
             d = sinT * spinAxis.z;
       }
-      Quaternion operator*(const Quaternion& rhs) {
+      Quaternion operator*(const Quaternion& rhs) const {
             const float& e = rhs.a;
             const float& f = rhs.b;
             const float& g = rhs.c;
@@ -80,11 +84,11 @@ struct Quaternion {
             Normalize(newa, newb, newc, newd);
             return Quaternion(newa, newb, newc, newd);
       }
-      Quaternion Inverse() {
+      Quaternion Inverse() const {
             // assume the quaternion normalized?
             return Quaternion(a, -b, -c, -d);
       }
-      Matrix4 toMatrix4() {
+      Matrix4 toMatrix4() const {
             return Matrix4(a*a + b * b - c * c - d * d, 2 * b*c - 2 * a*d, 2 * b*d + 2 * a*c, 0,
                   2 * b*c + 2 * a*d, a*a - b * b + c * c - d * d, 2 * c*d - 2 * a*b, 0,
                   2 * b*d - 2 * a*c, 2 * c*d + 2 * a*b, a*a - b * b - c * c + d * d, 0,

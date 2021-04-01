@@ -49,4 +49,15 @@ public:
       }
 
       bool dirty() const { return dirty_count > 0; }
+      D3D12_GPU_VIRTUAL_ADDRESS gpu_addr_curr_frame(int eidx) {
+            UINT64 perObjectByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(DataPerPrimitive3D));
+            UINT64 offset = eidx * perObjectByteSize;
+
+            D3D12_GPU_VIRTUAL_ADDRESS startAddr;
+            if (cbuffers.size() > 1)
+                  startAddr = cbuffers[g_frameIndex].Resource()->GetGPUVirtualAddress();
+            else
+                  startAddr = cbuffers[0].Resource()->GetGPUVirtualAddress();
+            return startAddr + offset;
+      }
 };

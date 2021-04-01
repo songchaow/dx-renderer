@@ -50,7 +50,7 @@ void RenderPass::CreateRootSignature() {
             IID_PPV_ARGS(root_signature.GetAddressOf())));
 }
 
-void RenderPass::draw(std::vector<Resource>& rts)
+void RenderPass::draw(std::vector<Resource*>& rts)
 {
       // switch pso
       g_pd3dCommandList->SetPipelineState(pso.Get());
@@ -60,8 +60,10 @@ void RenderPass::draw(std::vector<Resource>& rts)
       // set input Resource states (vertex? textures?)
 
       // set output Resource states (render targets)
+      if(rts.empty())
+            rts = render_targets;
       for(auto& rt : rts) {
-            rt.transit_if_needed(D3D12_RESOURCE_STATE_RENDER_TARGET);
+            rt->transit_if_needed(D3D12_RESOURCE_STATE_RENDER_TARGET);
       }
 
       // render each item

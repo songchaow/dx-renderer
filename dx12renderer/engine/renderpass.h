@@ -4,55 +4,6 @@
 #include "common/geometry.h"
 #include "utility/CBuffer.h"
 #include "d3dbootstrap.h"
-
-struct Resource {
-      UINT id;
-      enum ResourceType {
-            TEXTURE2D,          // default heap
-            RENDER_TARGET,    // can also be texture, default heap
-            CONST_BUFFER,     // upload heap
-      };
-      ResourceType type;
-      //union ResourceSize {
-      //      Point2i size2d; // element counts, NOT byte size
-      //      uint32_t length; // byte length?
-      //};
-      //ResourceSize size;
-      uint32_t depth = 1;
-      D3D12_RESOURCE_DESC desc;
-      ComPtr<ID3D12Resource> resource;
-      D3D12_RESOURCE_STATES curr_state;
-      void Create();
-
-      // render target or texture2d
-      Resource(ResourceType type, UINT width, UINT height, DXGI_FORMAT element_format, UINT depth = 1, UINT16 miplevels = 1,
-            D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_GENERIC_READ, UINT sampleCount = 1, UINT sampleQuality = 0)
-            : type(type), curr_state(initialState) {
-            desc.Alignment = 0;
-            desc.MipLevels = miplevels;
-            desc.Format = element_format;
-            desc.SampleDesc.Count = sampleCount;
-            desc.SampleDesc.Quality = sampleQuality;
-            desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-            desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-            
-            desc.Width = width; desc.Height = height; desc.DepthOrArraySize = depth;
-            if (type == RENDER_TARGET)
-                  desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-
-      }
-
-      void transit_if_needed(D3D12_RESOURCE_STATES target_state) {
-            if(curr_state != target_state) {
-                  g_pd3dCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(resource.Get(),
-		curr_state, target_state));
-                  curr_state = target_state;
-            }
-      }
-
-
-      
-};
 #include <cassert>
 
 class RenderPass {
@@ -115,7 +66,7 @@ class RenderPass {
             CreateRootSignature();
             CreatePSO();
       }
-      virtual void draw(std::vector<Resource>& rt);
+      virtual void draw(std::vector<Resource*>& rt);
 
 public:
       // d3dDevice must be valid

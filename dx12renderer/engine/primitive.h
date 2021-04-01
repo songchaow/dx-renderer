@@ -201,6 +201,7 @@ public:
       D3D12_VERTEX_BUFFER_VIEW* VertexBufferView() { return &mesh.vbv; }
       D3D12_INDEX_BUFFER_VIEW* IndexBufferView() { return &mesh.ibv; }
       auto Topology() { return topology; }
+      bool cbuffer_dirty() const { return constant_buffer_dirty; }
 
 public:
       Primitive3D(MeshData&& m) : mesh(std::move(m)) {

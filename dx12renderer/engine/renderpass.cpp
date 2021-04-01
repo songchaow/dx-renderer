@@ -50,13 +50,21 @@ void RenderPass::CreateRootSignature() {
             IID_PPV_ARGS(root_signature.GetAddressOf())));
 }
 
-void RenderPass::draw()
+void RenderPass::draw(const std::vector<Resource>& rts)
 {
       // switch pso
       g_pd3dCommandList->SetPipelineState(pso.Get());
       // update const buffer if changed
       update_cbuffer_data_perpass();
       //g_pd3dCommandList->SetGraphicsRootConstantBufferView(0, );
+      // set input Resource states (vertex? textures?)
+
+      // set output Resource states (render targets)
+      for(const auto& rt : rts) {
+            rt.transit_if_needed(D3D12_RESOURCE_STATE_RENDER_TARGET);
+      }
+
+      // render each item
       for (auto* p : Scene::scene.objs3D) {
             // Input
             g_pd3dCommandList->IASetVertexBuffers(0, 1, p->VertexBufferView());
@@ -65,10 +73,9 @@ void RenderPass::draw()
             // TODO: update the following from the outside
             //g_pd3dCommandList->SetGraphicsRootConstantBufferView(0, );
             g_pd3dCommandList->SetGraphicsRootConstantBufferView(1, p->ConstBufferGPUAddressCurrFrame());
-            // set root descriptor table for const buffer (root param slot 1)
-            //g_pd3dCommandList->SetGraphicsRootDescriptorTable(1, p->ConstantBufferViewCurrFrameGPU());
 
             // TODO: if dirty, and the count >0, reduce the count, and update the cb of current frame.
+            p->update_gpu_cbuffer();
       }
 
 }

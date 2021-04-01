@@ -2,6 +2,7 @@
 #include "d3dx12.h"
 #include "utility.h"
 
+// A buffer which resides on the upload heap and provides upload facility.
 template<typename T>
 class UploadBuffer
 {

@@ -42,6 +42,14 @@ struct Resource {
 
       }
 
+      void transit_if_needed(D3D12_RESOURCE_STATES target_state) {
+            if(_state != target_state) {
+                  g_pd3dDevice->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(resource.Get(),
+		curr_state, target_state));
+                  curr_state = target_state;
+            }
+      }
+
 
       
 };
@@ -107,7 +115,7 @@ class RenderPass {
             CreateRootSignature();
             CreatePSO();
       }
-      virtual void draw();
+      virtual void draw(const std::vector<Resource>& rt);
 
 public:
       // d3dDevice must be valid

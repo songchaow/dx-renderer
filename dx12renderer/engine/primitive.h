@@ -20,11 +20,9 @@ struct MeshData {
       uint64_t indexNum; // initialize
       DXGI_FORMAT indexFormat; // initialize (maybe from byte stride)
 
-      ComPtr<ID3D12Resource> uploadBufferVertex;
-      ComPtr<ID3D12Resource> uploadBufferIndex;
 
-      ComPtr<ID3D12Resource> vertexBuffer = nullptr;
-      ComPtr<ID3D12Resource> indexBuffer = nullptr;
+      Resource vertexBuffer;
+      Resource indexBuffer;
       D3D12_VERTEX_BUFFER_VIEW vbv;
       D3D12_INDEX_BUFFER_VIEW ibv;
 
@@ -48,10 +46,10 @@ struct MeshData {
             if (!_dataVertex_host)
                   return;
             // create vertex buffer
-
-            vertexBuffer = d3dUtil::CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataVertex_host.get(), byteLength(), uploadBufferVertex);
+            vertexBuffer.CreateAsVertexIdxBuffer(byteLength());
+            vertexBuffer.upload_device_data(_dataVertex_host.get(), byteLength());
             // create VBV
-            vbv.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
+            vbv.BufferLocation = vertexBuffer.gpu_addr();
             vbv.SizeInBytes = byteLength();
             vbv.StrideInBytes = byteStride();
 
@@ -60,9 +58,10 @@ struct MeshData {
 
             // create index buffer
             // reuse uploadBuffer? no
-            indexBuffer = d3dUtil::CreateDefaultBuffer(g_pd3dDevice, g_pd3dCommandList, _dataIndex_host.get(), indexByteLength(), uploadBufferIndex);
+            indexBuffer.CreateAsVertexIdxBuffer(indexByteLength());
+            indexBuffer.upload_device_data(_dataIndex_host.get(), indexByteLength());
             // create IBV
-            ibv.BufferLocation = indexBuffer->GetGPUVirtualAddress();
+            ibv.BufferLocation = indexBuffer.gpu_addr();
             ibv.SizeInBytes = indexByteLength();
             ibv.Format = indexFormat;
 

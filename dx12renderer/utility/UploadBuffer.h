@@ -134,6 +134,7 @@ struct Resource {
       }
 
       void transit_if_needed(D3D12_RESOURCE_STATES target_state);
+      D3D12_GPU_VIRTUAL_ADDRESS gpu_addr() const { resource->GetGPUVirtualAddress(); }
 };
 
 // A buffer which resides on the upload heap and provides upload facility.

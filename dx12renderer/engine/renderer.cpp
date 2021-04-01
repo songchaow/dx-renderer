@@ -5,6 +5,7 @@
 #include "engine/scene.h"
 #include "engine/shader.h"
 #include "d3dbootstrap.h"
+#include "dx12renderer.h"
 #include "main.h"
 
 void RenderUI() {
@@ -55,7 +56,7 @@ void RenderUI() {
       }
 }
 
-void RenderFrame() {
+void D3DRenderer::render_frame() {
       FrameContext* frameCtxt = WaitForNextFrameResources();
       UINT backBufferIdx = g_pSwapChain->GetCurrentBackBufferIndex();
       frameCtxt->CommandAllocator->Reset();
@@ -63,6 +64,10 @@ void RenderFrame() {
       // TODO: update camera
 
       // TODO: render scene here
+      // Now, only run the first RenderPass element
+      RenderPass& first_rp = renderpass_graph[0];
+      std::vector<Resource> render_targets;
+      //first_rp.draw();
 
       RenderUI();
 
@@ -103,7 +108,7 @@ void RenderFrame() {
 
 }
 
-bool d3dbootstrap(HWND hwindow) {
+bool D3DRenderer::d3d_init(HWND hwindow) {
       // Initialize D3D
       if (!CreateDeviceD3D(hwindow))
       {
@@ -124,7 +129,9 @@ bool d3dbootstrap(HWND hwindow) {
 
 
       // Pipeline
-      CreatePipelineD3D();
+      g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
+      renderpass_graph.push_back(CreateSimpleRenderPass());
+      
 
       // Load primitives (loading contains commands)
       Scene::scene.objs3D.push_back(make_example_primitive());

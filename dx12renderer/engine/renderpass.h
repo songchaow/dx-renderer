@@ -66,13 +66,24 @@ class RenderPass {
             CreateRootSignature();
             CreatePSO();
       }
-      virtual void draw(std::vector<Resource*>& rt);
 
 public:
       // d3dDevice must be valid
       RenderPass(std::string name, Shader* s, VertexLayoutDesc vl, D3D12_ROOT_SIGNATURE_DESC rootsig_desc,
             std::vector<DXGI_FORMAT> rt_formats, DXGI_FORMAT ds_format) : name(name), shader(s), input_layout(vl),
              root_signature_desc(rootsig_desc), rt_formats(rt_formats), ds_format(ds_format), cbuffer(g_pd3dDevice) {}
+      RenderPass(const RenderPass& rhs) = delete;
+      RenderPass(RenderPass&& rhs) : name(rhs.name), shader(rhs.shader),
+            input_layout(rhs.input_layout), root_signature_desc(rhs.root_signature_desc),
+            root_signature(rhs.root_signature), rasterizer_state(rhs.rasterizer_state), depth_stencil_state(rhs.depth_stencil_state),
+            blend_state(rhs.blend_state), sample_mask(rhs.sample_mask), primitive_topology_type(rhs.primitive_topology_type),
+            input_layout_storage(std::move(rhs.input_layout_storage)), pso_desc(rhs.pso_desc), pso(rhs.pso), rt_formats(std::move(rhs.rt_formats)),
+            ds_format(rhs.ds_format), render_targets(std::move(rhs.render_targets)), depth_stencil(rhs.depth_stencil), cbuffer(std::move(rhs.cbuffer))
+      {
+            rhs.root_signature.Reset();
+            rhs.pso.Reset();
+      }
+      virtual void draw(std::vector<Resource*>& rt);
 };
 
 RenderPass CreateSimpleRenderPass();

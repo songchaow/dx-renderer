@@ -42,11 +42,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     LoadStringW(hInstance, IDC_DX12RENDERER, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
+    D3DRenderer renderer;
+
     // Perform application initialization:
     if (!InitInstance (hInstance, nCmdShow))
     {
         return FALSE;
     }
+
+    renderer.d3d_init(hWindow);
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DX12RENDERER));
 
@@ -59,7 +63,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             DispatchMessage(&msg);
             continue;
         }
-        RenderFrame();
+        renderer.render_frame();
     }
 
     // cleanup 
@@ -97,8 +101,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
             return FALSE;
       }
       hWindow = hwnd;
-
-      d3dbootstrap(hWindow);
 
       
       

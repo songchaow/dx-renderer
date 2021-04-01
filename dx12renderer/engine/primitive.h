@@ -90,7 +90,7 @@ struct Primitive3DState {
             return T * S * R;
       }
       // default at (0,0,0)
-      Primitive3DState() : position(0.f, 0.f, 0.f), rotation((1, 0, 0), 0.f), scale(1.f, 1.f, 1.f) {}
+      Primitive3DState() : position(0.f, 0.f, 0.f), rotation({ 1, 0, 0 }, 0.f), scale(1.f, 1.f, 1.f) {}
       Primitive3DState(Point3f p) : position(p), rotation((1, 0, 0), 0.f), scale(1.f, 1.f, 1.f) {}
 };
 

@@ -189,7 +189,7 @@ public:
       }
 
       // Updates cbuffer in current frame and reduce the dirty count
-      // Should be in `tick`
+      // Should be in `tick`. Now is directly called in RenderPass::draw
       void update_gpu_cbuffer() {
             if(!constant_buffer_dirty)
                   return;
@@ -213,6 +213,7 @@ public:
       Primitive3D(MeshData&& m, Primitive3DState position) : mesh(std::move(m)), pos(position) {
             init();
       }
+      const MeshData& mesh() const { return mesh; }
 };
 
 Primitive3D* make_example_primitive();

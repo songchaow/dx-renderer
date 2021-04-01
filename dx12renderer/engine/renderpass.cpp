@@ -56,7 +56,7 @@ void RenderPass::draw(const std::vector<Resource>& rts)
       g_pd3dCommandList->SetPipelineState(pso.Get());
       // update const buffer if changed
       update_cbuffer_data_perpass();
-      //g_pd3dCommandList->SetGraphicsRootConstantBufferView(0, );
+      g_pd3dCommandList->SetGraphicsRootConstantBufferView(0, cbuffer.gpu_addr_curr_frame(0));
       // set input Resource states (vertex? textures?)
 
       // set output Resource states (render targets)
@@ -65,6 +65,9 @@ void RenderPass::draw(const std::vector<Resource>& rts)
       }
 
       // render each item
+      // TODO: set render target
+
+      // TODO: resource transition on render target, input sources
       for (auto* p : Scene::scene.objs3D) {
             // Input
             g_pd3dCommandList->IASetVertexBuffers(0, 1, p->VertexBufferView());
@@ -76,6 +79,11 @@ void RenderPass::draw(const std::vector<Resource>& rts)
 
             // TODO: if dirty, and the count >0, reduce the count, and update the cb of current frame.
             p->update_gpu_cbuffer();
+<<<<<<< HEAD
+=======
+
+            g_pd3dCommandList->DrawIndexedInstanced(p->mesh().indexNum, 1, 0, 0, 0);
+>>>>>>> Set root cbv for data perpass
       }
 
 }

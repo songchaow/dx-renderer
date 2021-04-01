@@ -50,7 +50,7 @@ void RenderPass::CreateRootSignature() {
             IID_PPV_ARGS(root_signature.GetAddressOf())));
 }
 
-void RenderPass::draw(const std::vector<Resource>& rts)
+void RenderPass::draw(std::vector<Resource>& rts)
 {
       // switch pso
       g_pd3dCommandList->SetPipelineState(pso.Get());
@@ -60,7 +60,7 @@ void RenderPass::draw(const std::vector<Resource>& rts)
       // set input Resource states (vertex? textures?)
 
       // set output Resource states (render targets)
-      for(const auto& rt : rts) {
+      for(auto& rt : rts) {
             rt.transit_if_needed(D3D12_RESOURCE_STATE_RENDER_TARGET);
       }
 
@@ -79,11 +79,8 @@ void RenderPass::draw(const std::vector<Resource>& rts)
 
             // TODO: if dirty, and the count >0, reduce the count, and update the cb of current frame.
             p->update_gpu_cbuffer();
-<<<<<<< HEAD
-=======
 
             g_pd3dCommandList->DrawIndexedInstanced(p->mesh().indexNum, 1, 0, 0, 0);
->>>>>>> Set root cbv for data perpass
       }
 
 }

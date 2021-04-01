@@ -104,7 +104,7 @@ private:
       static uint32_t curr_max_pIdx; // used when creating primitives
       uint32_t pIdx;
       // mesh data
-      MeshData mesh;
+      MeshData _mesh;
 
       // constant buffer content
       DataPerPrimitive3D constant_buffer_cpu;
@@ -156,7 +156,7 @@ public:
             #endif
 
             // mesh
-            mesh.LoadtoBuffer();
+            _mesh.LoadtoBuffer();
       }
       D3D12_GPU_VIRTUAL_ADDRESS ConstBufferGPUAddressCurrFrame() const {
             UINT64 perObjectByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(DataPerPrimitive3D));
@@ -198,22 +198,22 @@ public:
                   constant_buffer_dirty = false;
 
       }
-      D3D12_VERTEX_BUFFER_VIEW* VertexBufferView() { return &mesh.vbv; }
-      D3D12_INDEX_BUFFER_VIEW* IndexBufferView() { return &mesh.ibv; }
+      D3D12_VERTEX_BUFFER_VIEW* VertexBufferView() { return &_mesh.vbv; }
+      D3D12_INDEX_BUFFER_VIEW* IndexBufferView() { return &_mesh.ibv; }
       auto Topology() { return topology; }
       bool cbuffer_dirty() const { return constant_buffer_dirty; }
 
 public:
-      Primitive3D(MeshData&& m) : mesh(std::move(m)) {
+      Primitive3D(MeshData&& m) : _mesh(std::move(m)) {
             init();
       }
-      Primitive3D(MeshData&& m, Point3f position) : mesh(std::move(m)), pos(position) {
+      Primitive3D(MeshData&& m, Point3f position) : _mesh(std::move(m)), pos(position) {
             init();
       }
-      Primitive3D(MeshData&& m, Primitive3DState position) : mesh(std::move(m)), pos(position) {
+      Primitive3D(MeshData&& m, Primitive3DState position) : _mesh(std::move(m)), pos(position) {
             init();
       }
-      const MeshData& mesh() const { return mesh; }
+      const MeshData& mesh() const { return _mesh; }
 };
 
 Primitive3D* make_example_primitive();

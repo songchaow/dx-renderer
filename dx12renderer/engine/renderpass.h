@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/shader.h"
+#include "engine/scene.h"
 #include <string>
 #include "common/geometry.h"
 #include "utility/CBuffer.h"
@@ -8,6 +9,7 @@
 
 class RenderPass {
       std::string name;
+      Scene* _scene;
       Shader* shader;
       VertexLayoutDesc input_layout;
       D3D12_ROOT_SIGNATURE_DESC root_signature_desc;
@@ -70,10 +72,10 @@ class RenderPass {
 public:
       // d3dDevice must be valid
       RenderPass(std::string name, Shader* s, VertexLayoutDesc vl, D3D12_ROOT_SIGNATURE_DESC rootsig_desc,
-            std::vector<DXGI_FORMAT> rt_formats, DXGI_FORMAT ds_format) : name(name), shader(s), input_layout(vl),
+            std::vector<DXGI_FORMAT> rt_formats, DXGI_FORMAT ds_format, Scene* scene = nullptr) : name(name), _scene(scene), shader(s), input_layout(vl),
              root_signature_desc(rootsig_desc), rt_formats(rt_formats), ds_format(ds_format), cbuffer(g_pd3dDevice) {}
       RenderPass(const RenderPass& rhs) = delete;
-      RenderPass(RenderPass&& rhs) : name(rhs.name), shader(rhs.shader),
+      RenderPass(RenderPass&& rhs) : name(rhs.name), shader(rhs.shader), _scene(rhs._scene),
             input_layout(rhs.input_layout), root_signature_desc(rhs.root_signature_desc),
             root_signature(rhs.root_signature), rasterizer_state(rhs.rasterizer_state), depth_stencil_state(rhs.depth_stencil_state),
             blend_state(rhs.blend_state), sample_mask(rhs.sample_mask), primitive_topology_type(rhs.primitive_topology_type),
@@ -82,7 +84,9 @@ public:
       {
             rhs.root_signature.Reset();
             rhs.pso.Reset();
+            rhs._scene = nullptr;
       }
+      void set_scene(Scene* s) { _scene = s; }
       virtual void draw(std::vector<Resource*>& rt);
 };
 

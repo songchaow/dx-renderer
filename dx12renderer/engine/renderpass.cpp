@@ -65,12 +65,14 @@ void RenderPass::draw(std::vector<Resource*>& rts)
       for(auto& rt : rts) {
             rt->transit_if_needed(D3D12_RESOURCE_STATE_RENDER_TARGET);
       }
+      // set rtvs
+      //g_pd3dCommandList->OMSetRenderTargets(rts.size(), );
 
       // render each item
       // TODO: set render target
 
       // TODO: resource transition on render target, input sources
-      for (auto* p : Scene::scene.objs3D) {
+      for (auto* p : _scene->objs3D) {
             // Input
             g_pd3dCommandList->IASetVertexBuffers(0, 1, p->VertexBufferView());
             g_pd3dCommandList->IASetIndexBuffer(p->IndexBufferView());

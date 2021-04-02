@@ -66,7 +66,7 @@ void D3DRenderer::render_frame() {
       // TODO: render scene here
       // Now, only run the first RenderPass element
       RenderPass& first_rp = renderpass_graph[0];
-      std::vector<Resource> render_targets;
+      std::vector<Resource> render_targets; // TODO: Different frame in render targets
       //first_rp.draw();
 
       RenderUI();
@@ -131,10 +131,10 @@ bool D3DRenderer::d3d_init(HWND hwindow) {
       // Pipeline
       g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
       renderpass_graph.push_back(CreateSimpleRenderPass());
-      
+      renderpass_graph[0].set_scene(&_scene);
 
       // Load primitives (loading contains commands)
-      Scene::scene.objs3D.push_back(make_example_primitive());
+      _scene.objs3D.push_back(make_example_primitive());
 
       // execute and initialize
       g_pd3dCommandList->Close();

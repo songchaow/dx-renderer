@@ -25,6 +25,7 @@ struct Resource {
       BYTE* mMappedData = nullptr;
 
       // render target or texture2d
+      // NOT used
       Resource(ResourceType type, UINT width, UINT height, DXGI_FORMAT element_format, UINT depth = 1, UINT16 miplevels = 1,
             UINT sampleCount = 1, UINT sampleQuality = 0)
             : type(type), curr_state(D3D12_RESOURCE_STATE_GENERIC_READ) {
@@ -43,6 +44,8 @@ struct Resource {
       }
       // General ctor
       Resource(D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE) : flags(flags), type(UNKNOWN), curr_state(D3D12_RESOURCE_STATE_GENERIC_READ) {}
+      // from created resource
+      // Resource(D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE) {}
       ~Resource() {
             if (type == CONST_BUFFER) {
                   if (resource) {
@@ -156,4 +159,23 @@ protected:
 
       UINT mElementByteSize = 0;
       bool mIsConstantBuffer = false;
+};
+
+// Now, only supports render target
+// Multiple buffers may be contained (for each frame), but only one buffer is used when rendering.
+class D3DTexture {
+      bool perframe;
+      bool enable_render_target;
+      bool enable_texture; // to be determined
+
+      // the cpu descriptor handle in rtv heap
+      D3D12_CPU_DESCRIPTOR_HANDLE _cpu_handle; // the first descriptor. Multiple descriptors should be consecutive
+      // the actual gpu resource(s)
+      D3D12_GPU_VIRTUAL_ADDRESS _resource_addr;
+
+public:
+      D3DTexture() = default;
+
+      void CreateAsSwapChain();
+
 };

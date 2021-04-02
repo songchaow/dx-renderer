@@ -45,6 +45,8 @@ constexpr int NUM_FRAMES_IN_FLIGHT = 3;
 constexpr int NUM_BACK_BUFFERS = 3;
 extern ID3D12Device* g_pd3dDevice;
 extern ID3D12DescriptorHeap* g_pd3dSrvDescHeap;
+extern ID3D12DescriptorHeap*        g_pd3dRtvDescHeap;
+extern uint32_t                     g_nextRtvDescIdx;
 extern FrameContext                 g_frameContext[NUM_FRAMES_IN_FLIGHT];
 extern IDXGISwapChain3*             g_pSwapChain;
 extern ID3D12CommandQueue*          g_pd3dCommandQueue;
@@ -55,7 +57,8 @@ extern D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFER
 extern ID3D12GraphicsCommandList*   g_pd3dCommandList;
 extern UINT                         g_frameIndex;
 
-
+constexpr int NUM_RESERVED_CBV_SRV_UAV = 1024;
+constexpr int NUM_RESERVED_RTV = 10 * NUM_BACK_BUFFERS;
 
 void CreateRTVfromSwapChain();
 void WaitForLastSubmittedFrame();

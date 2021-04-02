@@ -24,7 +24,8 @@ FrameContext                 g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
 UINT                         g_frameIndex = 0;
 
 ID3D12Device*                g_pd3dDevice = NULL;
-static ID3D12DescriptorHeap*        g_pd3dRtvDescHeap = NULL;
+ID3D12DescriptorHeap*        g_pd3dRtvDescHeap = NULL;
+uint32_t                     g_nextRtvDescIdx = 0;
 ID3D12DescriptorHeap*        g_pd3dSrvDescHeap = NULL;
 ID3D12CommandQueue*          g_pd3dCommandQueue = NULL;
 ID3D12GraphicsCommandList*   g_pd3dCommandList = NULL;
@@ -142,9 +143,9 @@ bool CreateDeviceD3D(HWND hWnd)
 
             SIZE_T rtvDescriptorSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
             D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = g_pd3dRtvDescHeap->GetCPUDescriptorHandleForHeapStart();
-            for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
+            for (; g_nextRtvDescIdx < NUM_BACK_BUFFERS; g_nextRtvDescIdx++)
             {
-                  g_mainRenderTargetDescriptor[i] = rtvHandle;
+                  g_mainRenderTargetDescriptor[g_nextRtvDescIdx] = rtvHandle;
                   rtvHandle.ptr += rtvDescriptorSize;
             }
       }
@@ -153,7 +154,7 @@ bool CreateDeviceD3D(HWND hWnd)
             D3D12_DESCRIPTOR_HEAP_DESC desc = {};
             desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
             // the first for imgui, the second for per frame, and one per object.(space for 3 CBVs in total)
-            desc.NumDescriptors = UINT(CBVLocation::NUM_CBV); 
+            desc.NumDescriptors = NUM_RESERVED_CBV_SRV_UAV;
             desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
             if (g_pd3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&g_pd3dSrvDescHeap)) != S_OK)
                   return false;

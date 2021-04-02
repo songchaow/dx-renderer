@@ -4,5 +4,5 @@
 
 struct Scene {
       std::vector<Primitive3D*> objs3D;
-      static Scene scene;
+      //static Scene scene;
 };

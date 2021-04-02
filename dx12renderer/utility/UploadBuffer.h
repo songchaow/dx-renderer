@@ -1,6 +1,7 @@
 #pragma once
 #include "d3dx12.h"
 #include "utility.h"
+#include "common/common.h"
 
 struct Resource {
 
@@ -161,7 +162,7 @@ protected:
       bool mIsConstantBuffer = false;
 };
 
-// Now, only supports render target
+// For now, only supports render target. Add Texture later.
 // Multiple buffers may be contained (for each frame), but only one buffer is used when rendering.
 class D3DTexture {
       bool perframe;
@@ -169,13 +170,13 @@ class D3DTexture {
       bool enable_texture; // to be determined
 
       // the cpu descriptor handle in rtv heap
-      D3D12_CPU_DESCRIPTOR_HANDLE _cpu_handle; // the first descriptor. Multiple descriptors should be consecutive
+      D3D12_CPU_DESCRIPTOR_HANDLE _cpu_handle_start; // the first descriptor. Multiple descriptors should be consecutive
       // the actual gpu resource(s)
-      D3D12_GPU_VIRTUAL_ADDRESS _resource_addr;
+      D3D12_GPU_VIRTUAL_ADDRESS _resource_addr[NUM_BACK_BUFFERS];
 
 public:
       D3DTexture() = default;
 
-      void CreateAsSwapChain();
+      void CreateAsSwapChain(HWND hWnd);
 
 };

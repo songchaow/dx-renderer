@@ -150,6 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="common\camera.h" />
+    <ClInclude Include="common\common.h" />
     <ClInclude Include="common\geometry.h" />
     <ClInclude Include="common\transform.h" />
     <ClInclude Include="d3dbootstrap.h" />

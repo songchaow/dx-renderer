@@ -63,13 +63,13 @@ class RenderPass {
       void build_cbuffer_data_perpass();
       // Called per frame
       void update_cbuffer_data_perpass();
+
+public:
       void init() {
             build_cbuffer_data_perpass();
             CreateRootSignature();
             CreatePSO();
       }
-
-public:
       // d3dDevice must be valid
       RenderPass(std::string name, Shader* s, VertexLayoutDesc vl, D3D12_ROOT_SIGNATURE_DESC rootsig_desc,
             std::vector<DXGI_FORMAT> rt_formats, DXGI_FORMAT ds_format, Scene* scene = nullptr) : name(name), _scene(scene), shader(s), input_layout(vl),

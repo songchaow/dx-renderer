@@ -71,9 +71,10 @@ void D3DRenderer::render_frame() {
 
       first_rp.draw(render_targets);
 
+      // record ui
       RenderUI();
 
-
+      // Now begin recording command list
       D3D12_RESOURCE_BARRIER barrier = {};
       barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
       barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -89,7 +90,7 @@ void D3DRenderer::render_frame() {
       g_pd3dCommandList->OMSetRenderTargets(1, &g_mainRenderTargetDescriptor[backBufferIdx], FALSE, NULL);
       g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
 
-      ImGui::Render();
+      ImGui::Render(); // still not drown yet
       ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), g_pd3dCommandList);
       barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
       barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
@@ -138,6 +139,7 @@ bool D3DRenderer::d3d_init(HWND hwindow) {
       g_pd3dCommandList->SetDescriptorHeaps(1, &g_pd3dSrvDescHeap);
       renderpass_graph.push_back(CreateSimpleRenderPass());
       renderpass_graph[0].set_scene(&_scene);
+      renderpass_graph[0].init();
 
       // Load primitives (loading contains commands)
       _scene.objs3D.push_back(make_example_primitive());

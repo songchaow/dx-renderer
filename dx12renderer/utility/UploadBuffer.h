@@ -165,6 +165,7 @@ protected:
 // For now, only supports render target. Add Texture later.
 // Multiple buffers may be contained (for each frame), but only one buffer is used when rendering.
 class D3DTexture {
+protected:
       bool perframe;
       bool enable_render_target;
       bool enable_texture; // to be determined
@@ -172,11 +173,33 @@ class D3DTexture {
       // the cpu descriptor handle in rtv heap
       D3D12_CPU_DESCRIPTOR_HANDLE _cpu_handle_start; // the first descriptor. Multiple descriptors should be consecutive
       // the actual gpu resource(s)
-      D3D12_GPU_VIRTUAL_ADDRESS _resource_addr[NUM_BACK_BUFFERS];
+      //D3D12_GPU_VIRTUAL_ADDRESS _resource_addr[NUM_BACK_BUFFERS];
+      ID3D12Resource* _resource[NUM_BACK_BUFFERS] = { 0 };
+      IDXGISwapChain3* _swapChain = nullptr;
 
 public:
       D3DTexture() = default;
-
+      D3DTexture(const D3DTexture& rhs) = delete;
+      D3DTexture(D3DTexture&& rhs) : perframe(rhs.perframe), enable_render_target(rhs.enable_render_target),
+            enable_texture(rhs.enable_texture), _cpu_handle_start(rhs._cpu_handle_start) {
+            std::memcpy(_resource, rhs._resource, sizeof(_resource));
+            for (int i = 0; i < NUM_BACK_BUFFERS; i++)
+                  rhs._resource[i] = nullptr;
+      }
+      ~D3DTexture() {
+            for (auto* res : _resource) {
+                  if (res)
+                        res->Release();
+            }
+            if (_swapChain) {
+                  _swapChain->Release();
+            }
+      }
+      void transit_if_needed() {
+            if (perframe)
+                  ;
+                  //_resource[g_frameIndex]->
+      }
       void CreateAsSwapChain(HWND hWnd);
 
 };

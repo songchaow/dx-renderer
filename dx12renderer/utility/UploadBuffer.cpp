@@ -5,7 +5,6 @@ void D3DTexture::CreateAsSwapChain(HWND hWnd)
 {
       perframe = true;
       enable_render_target = true;
-
       {
             // Setup swap chain
             DXGI_SWAP_CHAIN_DESC1 sd;
@@ -28,25 +27,30 @@ void D3DTexture::CreateAsSwapChain(HWND hWnd)
             IDXGISwapChain1* swapChain1 = NULL;
             if (CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)) != S_OK ||
                   dxgiFactory->CreateSwapChainForHwnd(g_pd3dCommandQueue, hWnd, &sd, NULL, NULL, &swapChain1) != S_OK ||
-                  swapChain1->QueryInterface(IID_PPV_ARGS(&g_pSwapChain)) != S_OK)
+                  swapChain1->QueryInterface(IID_PPV_ARGS(&_swapChain)) != S_OK)
                   return; // TODO: log error
             swapChain1->Release();
             dxgiFactory->Release();
-            g_pSwapChain->SetMaximumFrameLatency(NUM_BACK_BUFFERS);
-            g_hSwapChainWaitableObject = g_pSwapChain->GetFrameLatencyWaitableObject();
+            _swapChain->SetMaximumFrameLatency(NUM_BACK_BUFFERS);
+            g_hSwapChainWaitableObject = _swapChain->GetFrameLatencyWaitableObject();
+            // also set the global swapchain object for compatibility
+            g_pSwapChain = _swapChain;
       }
 
-      // TODO: isrendertarget is true, append a descriptor in RTV heap
+      // set cpu descriptor
       _cpu_handle_start = g_pd3dRtvDescHeap->GetCPUDescriptorHandleForHeapStart();
       SIZE_T rtvDescriptorSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
       _cpu_handle_start.ptr += g_nextRtvDescIdx * rtvDescriptorSize;
+
+      
 
       // Create rtvs
       D3D12_CPU_DESCRIPTOR_HANDLE local_hdl = _cpu_handle_start;
       for (int i = 0; i < NUM_BACK_BUFFERS; i++) {
             ID3D12Resource* curr_buffer = nullptr;
-            g_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&curr_buffer));
+            _swapChain->GetBuffer(i, IID_PPV_ARGS(&curr_buffer));
             g_pd3dDevice->CreateRenderTargetView(curr_buffer, NULL, local_hdl);
+            _resource[i] = curr_buffer;
             local_hdl.ptr += rtvDescriptorSize;
       }
 

@@ -32,8 +32,8 @@ class RenderPass {
       // render targets
       std::vector<DXGI_FORMAT> rt_formats;
       DXGI_FORMAT ds_format = DXGI_FORMAT_UNKNOWN;
-      std::vector<Resource*> render_targets; // not necessarily valid
-      Resource* depth_stencil = nullptr;
+      std::vector<D3DTexture*> render_targets; // not necessarily valid
+      D3DTexture* depth_stencil = nullptr;
 
       // cbuffer
       CBuffer<DataPerPass> cbuffer;
@@ -87,7 +87,7 @@ public:
             rhs._scene = nullptr;
       }
       void set_scene(Scene* s) { _scene = s; }
-      virtual void draw(std::vector<Resource*>& rt);
+      virtual void draw(std::vector<D3DTexture*>& rt);
 };
 
 RenderPass CreateSimpleRenderPass();

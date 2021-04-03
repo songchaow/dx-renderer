@@ -33,7 +33,7 @@ ID3D12Fence*                 g_fence = NULL;
 static HANDLE                       g_fenceEvent = NULL;
 UINT64                       g_fenceLastSignaledValue = 0;
 IDXGISwapChain3*             g_pSwapChain = NULL;
-HANDLE                       g_hSwapChainWaitableObject = NULL;
+static HANDLE                       g_hSwapChainWaitableObject = NULL;
 ID3D12Resource*              g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
 D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
 ID3D12RootSignature* g_defaultRootSignature = NULL;
@@ -143,9 +143,9 @@ bool CreateDeviceD3D(HWND hWnd)
 
             SIZE_T rtvDescriptorSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
             D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = g_pd3dRtvDescHeap->GetCPUDescriptorHandleForHeapStart();
-            for (; g_nextRtvDescIdx < NUM_BACK_BUFFERS; g_nextRtvDescIdx++)
+            for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
             {
-                  g_mainRenderTargetDescriptor[g_nextRtvDescIdx] = rtvHandle;
+                  g_mainRenderTargetDescriptor[i] = rtvHandle;
                   rtvHandle.ptr += rtvDescriptorSize;
             }
       }
@@ -220,8 +220,8 @@ bool CreateDeviceD3D(HWND hWnd)
 
 void CleanupDeviceD3D()
 {
-      CleanupRenderTarget();
-      if (g_pSwapChain) { g_pSwapChain->Release(); g_pSwapChain = NULL; }
+      //CleanupRenderTarget();
+      //if (g_pSwapChain) { g_pSwapChain->Release(); g_pSwapChain = NULL; }
       if (g_hSwapChainWaitableObject != NULL) { CloseHandle(g_hSwapChainWaitableObject); }
       for (UINT i = 0; i < NUM_FRAMES_IN_FLIGHT; i++)
             if (g_frameContext[i].CommandAllocator) { g_frameContext[i].CommandAllocator->Release(); g_frameContext[i].CommandAllocator = NULL; }

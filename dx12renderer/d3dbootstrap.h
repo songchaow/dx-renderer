@@ -38,7 +38,7 @@ extern FrameContext                 g_frameContext[NUM_FRAMES_IN_FLIGHT];
 
 
 
-void CreateRTVfromSwapChain();
+void fillResoourcePtrfromSwapChain();
 void WaitForLastSubmittedFrame();
 void CleanupRenderTarget();
 bool CreateDeviceD3D(HWND hWnd);

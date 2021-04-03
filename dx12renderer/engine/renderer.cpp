@@ -66,7 +66,9 @@ void D3DRenderer::render_frame() {
       // TODO: render scene here
       // Now, only run the first RenderPass element
       RenderPass& first_rp = renderpass_graph[0];
-      std::vector<Resource> render_targets; // TODO: Different frame in render targets
+      std::vector<D3DTexture*> render_targets; // TODO: Different frame in render targets
+      render_targets.push_back(&_swapBuffer);
+
       //first_rp.draw();
 
       RenderUI();
@@ -117,6 +119,10 @@ bool D3DRenderer::d3d_init(HWND hwindow) {
             return false;
       }
 
+      // swap buffer
+      _swapBuffer.CreateAsSwapChain(hwindow);
+
+      fillResoourcePtrfromSwapChain();
 
       // begin record initialization commands
       g_pd3dCommandList->Reset(g_frameContext[0].CommandAllocator, nullptr);

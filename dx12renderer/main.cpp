@@ -47,10 +47,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // Perform application initialization:
     if (!InitInstance (hInstance, nCmdShow))
     {
-        return FALSE;
+        return -1;
     }
 
-    renderer.d3d_init(hWindow);
+    if(!renderer.d3d_init(hWindow))
+        return -1;
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_DX12RENDERER));
 

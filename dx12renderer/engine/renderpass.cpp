@@ -50,7 +50,7 @@ void RenderPass::CreateRootSignature() {
             IID_PPV_ARGS(root_signature.GetAddressOf())));
 }
 
-void RenderPass::draw(std::vector<Resource*>& rts)
+void RenderPass::draw(std::vector<D3DTexture*>& rts)
 {
       // switch pso
       g_pd3dCommandList->SetPipelineState(pso.Get());
@@ -59,14 +59,17 @@ void RenderPass::draw(std::vector<Resource*>& rts)
       g_pd3dCommandList->SetGraphicsRootConstantBufferView(0, cbuffer.gpu_addr_curr_frame(0));
       // set input Resource states (vertex? textures?)
 
-      // set output Resource states (render targets)
+      // set output Resource states (render targets) and rtvs
       if(rts.empty())
             rts = render_targets;
-      for(auto& rt : rts) {
+
+      D3D12_CPU_DESCRIPTOR_HANDLE rtvs[NUM_BACK_BUFFERS];
+      for (int i = 0; i < rts.size(); i++) {
+            auto& rt = rts[i];
             rt->transit_if_needed(D3D12_RESOURCE_STATE_RENDER_TARGET);
+            rtvs[i] = rt->cpu_descriptor_handle_rtv();
       }
-      // set rtvs
-      //g_pd3dCommandList->OMSetRenderTargets(rts.size(), );
+      g_pd3dCommandList->OMSetRenderTargets(rts.size(), rtvs, FALSE, NULL);
 
       // render each item
       // TODO: set render target
@@ -118,12 +121,12 @@ void RenderPass::CreatePSO() {
       else {
             pso_desc.NumRenderTargets = render_targets.size();
             for (uint32_t i = 0; i < render_targets.size(); i++) {
-                  pso_desc.RTVFormats[i] = render_targets[i]->desc.Format;
+                  pso_desc.RTVFormats[i] = render_targets[i]->resource_desc().Format;
             }
       }
 
       if (depth_stencil)
-            pso_desc.DSVFormat = depth_stencil->desc.Format;
+            pso_desc.DSVFormat = depth_stencil->resource_desc().Format;
       else
             pso_desc.DSVFormat = ds_format;
 

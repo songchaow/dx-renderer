@@ -69,7 +69,7 @@ void D3DRenderer::render_frame() {
       std::vector<D3DTexture*> render_targets; // TODO: Different frame in render targets
       render_targets.push_back(&_swapBuffer);
 
-      //first_rp.draw();
+      first_rp.draw(render_targets);
 
       RenderUI();
 

@@ -33,18 +33,18 @@ ID3D12Fence*                 g_fence = NULL;
 static HANDLE                       g_fenceEvent = NULL;
 UINT64                       g_fenceLastSignaledValue = 0;
 IDXGISwapChain3*             g_pSwapChain = NULL;
-static HANDLE                       g_hSwapChainWaitableObject = NULL;
+HANDLE                       g_hSwapChainWaitableObject = NULL;
 ID3D12Resource*              g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
 D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
 ID3D12RootSignature* g_defaultRootSignature = NULL;
 
-void CreateRTVfromSwapChain()
+void fillResoourcePtrfromSwapChain()
 {
       for (UINT i = 0; i < NUM_BACK_BUFFERS; i++)
       {
             ID3D12Resource* pBackBuffer = NULL;
             g_pSwapChain->GetBuffer(i, IID_PPV_ARGS(&pBackBuffer));
-            g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, g_mainRenderTargetDescriptor[i]);
+            //g_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, g_mainRenderTargetDescriptor[i]);
             g_mainRenderTargetResource[i] = pBackBuffer;
       }
 }
@@ -183,38 +183,6 @@ bool CreateDeviceD3D(HWND hWnd)
       g_fenceEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
       if (g_fenceEvent == NULL)
             return false;
-
-      {
-            // Setup swap chain
-            DXGI_SWAP_CHAIN_DESC1 sd;
-            {
-                  ZeroMemory(&sd, sizeof(sd));
-                  sd.BufferCount = NUM_BACK_BUFFERS;
-                  sd.Width = 0;
-                  sd.Height = 0;
-                  sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-                  sd.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-                  sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-                  sd.SampleDesc.Count = 1;
-                  sd.SampleDesc.Quality = 0;
-                  sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-                  sd.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-                  sd.Scaling = DXGI_SCALING_STRETCH;
-                  sd.Stereo = FALSE;
-            }
-            IDXGIFactory4* dxgiFactory = NULL;
-            IDXGISwapChain1* swapChain1 = NULL;
-            if (CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)) != S_OK ||
-                  dxgiFactory->CreateSwapChainForHwnd(g_pd3dCommandQueue, hWnd, &sd, NULL, NULL, &swapChain1) != S_OK ||
-                  swapChain1->QueryInterface(IID_PPV_ARGS(&g_pSwapChain)) != S_OK)
-                  return false;
-            swapChain1->Release();
-            dxgiFactory->Release();
-            g_pSwapChain->SetMaximumFrameLatency(NUM_BACK_BUFFERS);
-            g_hSwapChainWaitableObject = g_pSwapChain->GetFrameLatencyWaitableObject();
-      }
-
-      CreateRTVfromSwapChain();
       return true;
 }
 

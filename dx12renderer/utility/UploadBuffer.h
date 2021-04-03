@@ -2,14 +2,17 @@
 #include "d3dx12.h"
 #include "utility.h"
 #include "common/common.h"
+#include <array>
 
+// Provides basic management of ID3D12Resource
+// Includes the facilty of creating resource, updating cpu data, and resource transition
+// No CPU-side data is stored. No per-frame facility.
 struct Resource {
 
       ComPtr<ID3D12Resource> _upload_buffer; // for uploading to default buffers
-
-      UINT id;
       enum ResourceType {
             UNKNOWN,
+            SWAP_CHAIN,         // which heap?
             TEXTURE2D,          // default heap
             VERTEX_IDX_DATA,    // default heap
             RENDER_TARGET,    // can also be texture, default heap
@@ -17,9 +20,8 @@ struct Resource {
       };
       bool upload_heap;
       ResourceType type;
-      uint32_t depth = 1;
       D3D12_RESOURCE_FLAGS flags;
-      D3D12_RESOURCE_DESC desc;
+
       ComPtr<ID3D12Resource> resource;
       D3D12_RESOURCE_STATES curr_state;
 
@@ -27,6 +29,7 @@ struct Resource {
 
       // render target or texture2d
       // NOT used
+      /*
       Resource(ResourceType type, UINT width, UINT height, DXGI_FORMAT element_format, UINT depth = 1, UINT16 miplevels = 1,
             UINT sampleCount = 1, UINT sampleQuality = 0)
             : type(type), curr_state(D3D12_RESOURCE_STATE_GENERIC_READ) {
@@ -42,9 +45,12 @@ struct Resource {
             if (type == RENDER_TARGET)
                   desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-      }
+      }*/
       // General ctor
       Resource(D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE) : flags(flags), type(UNKNOWN), curr_state(D3D12_RESOURCE_STATE_GENERIC_READ) {}
+      Resource(const Resource& rhs) = delete;
+      Resource(Resource&& rhs) : _upload_buffer(std::move(rhs._upload_buffer)), upload_heap(rhs.upload_heap), type(rhs.type),
+            flags(rhs.flags), resource(std::move(rhs.resource)), curr_state(rhs.curr_state), mMappedData(rhs.mMappedData) {}
       // from created resource
       // Resource(D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE) {}
       ~Resource() {
@@ -59,6 +65,10 @@ struct Resource {
       void CreateAsConstBuffer(uint32_t buffer_size);
 
       void CreateAsVertexIdxBuffer(uint32_t buffer_size);
+
+      void CreateAs2DTexture(DXGI_FORMAT element_format);
+
+      void CreateFromExistingResource(ID3D12Resource* created, ResourceType type = UNKNOWN, D3D12_RESOURCE_STATES init_state = D3D12_RESOURCE_STATE_COMMON);
 
       void _upload_to_default_heap(void* data, uint32_t data_byte_size, uint32_t offset);
 
@@ -84,6 +94,7 @@ struct Resource {
 
       void transit_if_needed(D3D12_RESOURCE_STATES target_state);
       D3D12_GPU_VIRTUAL_ADDRESS gpu_addr() const { return resource->GetGPUVirtualAddress(); }
+      D3D12_RESOURCE_DESC resource_desc() const { return resource->GetDesc(); }
 };
 
 // A buffer which resides on the upload heap and provides upload facility.
@@ -124,13 +135,12 @@ public:
       }
 
       UploadBuffer(const UploadBuffer& rhs) = delete;
-      UploadBuffer(UploadBuffer&& rhs) {
-
+      UploadBuffer(UploadBuffer&& rhs) : mMappedData(rhs.mMappedData), mElementByteSize(rhs.mElementByteSize), 
+            mIsConstantBuffer(rhs.mIsConstantBuffer), mUploadBuffer(std::move(rhs.mUploadBuffer)) {
       }
       UploadBuffer& operator=(const UploadBuffer& rhs) = delete;
       UploadBuffer& operator=(UploadBuffer&& rhs) {
-            mUploadBuffer = rhs.mUploadBuffer;
-            rhs.mUploadBuffer.Reset();
+            mUploadBuffer = std::move(rhs.mUploadBuffer);
 
             mMappedData = rhs.mMappedData;
             mElementByteSize = rhs.mElementByteSize;
@@ -171,35 +181,62 @@ protected:
       bool enable_texture; // to be determined
 
       // the cpu descriptor handle in rtv heap
-      D3D12_CPU_DESCRIPTOR_HANDLE _cpu_handle_start; // the first descriptor. Multiple descriptors should be consecutive
-      // the actual gpu resource(s)
-      //D3D12_GPU_VIRTUAL_ADDRESS _resource_addr[NUM_BACK_BUFFERS];
-      ID3D12Resource* _resource[NUM_BACK_BUFFERS] = { 0 };
+      D3D12_CPU_DESCRIPTOR_HANDLE _cpu_handle_start_rtv; // the first descriptor. Multiple descriptors should be consecutive
+      // the cpu descriptor handle in srv heap
+      D3D12_CPU_DESCRIPTOR_HANDLE _cpu_handle_start_srv; // the first descriptor
+                                                         // the actual gpu resource(s)
+      //ID3D12Resource* _resource[NUM_BACK_BUFFERS] = { 0 };
+      //Resource _resource[NUM_BACK_BUFFERS];
+      std::array<Resource, NUM_BACK_BUFFERS> _resource;
       IDXGISwapChain3* _swapChain = nullptr;
 
 public:
       D3DTexture() = default;
       D3DTexture(const D3DTexture& rhs) = delete;
       D3DTexture(D3DTexture&& rhs) : perframe(rhs.perframe), enable_render_target(rhs.enable_render_target),
-            enable_texture(rhs.enable_texture), _cpu_handle_start(rhs._cpu_handle_start) {
-            std::memcpy(_resource, rhs._resource, sizeof(_resource));
-            for (int i = 0; i < NUM_BACK_BUFFERS; i++)
-                  rhs._resource[i] = nullptr;
+            enable_texture(rhs.enable_texture), _cpu_handle_start_rtv(rhs._cpu_handle_start_rtv), _resource(std::move(rhs._resource)) {
+            rhs._swapChain = nullptr;
       }
       ~D3DTexture() {
-            for (auto* res : _resource) {
-                  if (res)
-                        res->Release();
-            }
             if (_swapChain) {
                   _swapChain->Release();
             }
       }
-      void transit_if_needed() {
+      void transit_if_needed(D3D12_RESOURCE_STATES target) {
             if (perframe)
-                  ;
-                  //_resource[g_frameIndex]->
+                  _resource[g_frameIndex].transit_if_needed(target);
+            else
+                  _resource[0].transit_if_needed(target);
       }
-      void CreateAsSwapChain(HWND hWnd);
+      void CreateAsSwapChain(HWND hWnd, DXGI_FORMAT element_format = DXGI_FORMAT_R8G8B8A8_UNORM);
+      void CreateAsTexture();
+      D3D12_GPU_VIRTUAL_ADDRESS gpu_addr() const {
+            if (perframe)
+                  return _resource[g_frameIndex].gpu_addr();
+            else
+                  return _resource[0].gpu_addr();
+      }
+      // return the handle to the rtv desriptor
+      D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor_handle_rtv() const {
+            if (perframe) {
+                  D3D12_CPU_DESCRIPTOR_HANDLE ret = _cpu_handle_start_rtv;
+                  SIZE_T rtvDescriptorSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+                  ret.ptr += rtvDescriptorSize * g_frameIndex;
+                  return ret;
+            }
+            else {
+                  return _cpu_handle_start_rtv;
+            }
+      }
 
+      D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor_handle_srv() const {
+            SIZE_T srvDescriptorSize = g_pd3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            return D3D12_CPU_DESCRIPTOR_HANDLE();
+      }
+      D3D12_RESOURCE_DESC resource_desc() const {
+            if (perframe)
+                  return _resource[g_frameIndex].resource_desc();
+            else
+                  return _resource[0].resource_desc();
+      }
 };

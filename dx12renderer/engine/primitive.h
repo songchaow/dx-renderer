@@ -73,8 +73,8 @@ struct MeshData {
             _dataIndex_host(dataIndex), vertexNum(numVertex), indexNum(numIndex), indexFormat(DXGI_FORMAT_R16_UINT) {}
       MeshData() : vertexNum(0), indexNum(0) {}
       // move ctor because of unique_ptr members
-      MeshData(MeshData&& m) : _layout(m._layout), _dataVertex_host(std::move(m._dataVertex_host)), _dataIndex_host(std::move(m._dataIndex_host)), vertexBuffer(m.vertexBuffer),
-            indexBuffer(m.indexBuffer), vbv(m.vbv), ibv(m.ibv), vertexNum(m.vertexNum), indexNum(m.indexNum), indexFormat(m.indexFormat) {}
+      MeshData(MeshData&& m) : _layout(m._layout), _dataVertex_host(std::move(m._dataVertex_host)), _dataIndex_host(std::move(m._dataIndex_host)), vertexBuffer(std::move(m.vertexBuffer)),
+            indexBuffer(std::move(m.indexBuffer)), vbv(m.vbv), ibv(m.ibv), vertexNum(m.vertexNum), indexNum(m.indexNum), indexFormat(m.indexFormat) {}
 };
 
 struct Primitive3DState {
